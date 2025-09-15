@@ -4,13 +4,13 @@ from .models import Pin
 @admin.register(Pin)
 class PinAdmin(admin.ModelAdmin):
     list_display = (
-        "user",
-        "attempts",
+        "supplier_id",
+        "failed_attempts",
         "locked_until",
         "created_at"
         )
     ordering = ("created_at",)
-    search_fields = ("user",)
+    search_fields = ("supplier_id",)
 
     def save_model(self,request,obj,form,change):
         raw_pin = form.cleaned_data.get("pin_code")
