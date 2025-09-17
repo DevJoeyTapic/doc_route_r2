@@ -38,6 +38,4 @@ class VerifyPinView(APIView):
              pin.save()
         return Response({"error":"Invalid PIN or account is locked"}, status=status.HTTP_401_UNAUTHORIZED)
 
-             
-
 
