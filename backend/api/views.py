@@ -21,7 +21,7 @@ class VerifyPinView(APIView):
              pin.save() 
 
             
-             refresh = RefreshToken() #  .for_user(dummy_user)
+             refresh = RefreshToken()
              access_token = AccessToken()
 
              refresh["supplier_id"] = pin.supplier_id
