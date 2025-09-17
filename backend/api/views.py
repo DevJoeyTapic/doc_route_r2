@@ -41,30 +41,3 @@ class VerifyPinView(APIView):
              
 
 
-
-
-        # try:
-        #     pin_obj = next(
-        #         (p for p in Pin.objects.all() if p.check_pin(raw_pin)),
-        #         None
-        #     )
-        #     if not pin_obj:
-        #         return Response({"error":"Invalid PIN"},status=status.HTTP_401_UNAUTHORIZED)
-        # except Exception:
-        #     return Response({"error":"Invalid PIN"},status=status.HTTP_401_UNAUTHORIZED)
-        
-        # if pin_obj.is_locked():
-        #     return Response({"error":"PIN is locked. try later"},status=status.HTTP_403_FORBIDDEN)
-        
-        # pin_obj.attempts = 0
-        # pin_obj.save()
-
-        # refresh =RefreshToken.for_user(None)
-        # refresh["pin_id"] = pin_obj.id
-        # refresh["supplier_id"] = pin_obj.supplier_id 
-
-        # return Response({
-        #         "refresh": str(refresh),
-        #         "access": str(refresh.access_token),
-        #         "user":pin_obj.supplier_id,
-        #     })
