@@ -5,6 +5,7 @@ from .models import Pin
 class PinAdmin(admin.ModelAdmin):
     list_display = (
         "supplier_id",
+        "pin_code",
         "failed_attempts",
         "locked_until",
         "created_at"

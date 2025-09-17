@@ -16,8 +16,14 @@ doc_route/
 
 ## ⚛️ Frontend (React)
 > Setup 
-
-
+- Create Project
+    ```
+    npm create vite@latest app -- --template react-swc-ts
+    ```
+- Install dependencies
+    ```
+    npm install
+    ```
 ## 🐍 Backend (Django)
 
 > Setup
