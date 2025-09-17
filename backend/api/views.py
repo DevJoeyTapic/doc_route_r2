@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from .models import Pin
 from django.contrib.auth.models import AnonymousUser
 
@@ -20,15 +20,17 @@ class VerifyPinView(APIView):
              pin.failed_attempts = 0
              pin.save() 
 
-             dummy_user = AnonymousUser()
-             refresh = RefreshToken.for_user(dummy_user)
+            
+             refresh = RefreshToken() #  .for_user(dummy_user)
+             access_token = AccessToken()
+
              refresh["supplier_id"] = pin.supplier_id
-             access_token = str(refresh.access_token)
+             access_token["supplier_id"] = pin.supplier_id
 
              return Response({
                 "message": "PIN verified successfully",
                 "supplier_id": pin.supplier_id,
-                "access_token": access_token,
+                "access_token": str(access_token),
                 "refresh_token": str(refresh),
              },status=status.HTTP_200_OK)
           else:
