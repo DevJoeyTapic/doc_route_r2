@@ -15,6 +15,7 @@ doc_route/
 ```
 
 ## ⚛️ Frontend (React)
+> Setup 
 
 
 ## 🐍 Backend (Django)
