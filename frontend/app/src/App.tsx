@@ -1,12 +1,16 @@
 import { useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./App.css";
 
 function App() {
   const [pin, setPin] = useState<string[]>(["", "", "", ""]);
-  const [message, setMessage] = useState("");
   const [locked, setLocked] = useState(false);
   const [attempts, setAttempts] = useState(0);
 
   const CORRECT_PIN = "1234";
+  const MAX_ATTEMPTS = 3;
+  const LOCK_TIMEOUT = 10000; // 10 seconds
 
   const handleChange = (value: string, index: number) => {
     if (/^\d?$/.test(value)) {
@@ -24,29 +28,28 @@ function App() {
 
   const handleSubmit = () => {
     if (locked) {
-      setMessage("PIN is locked. Try again later.");
+      toast.error("PIN is locked. Try again later.");
       return;
     }
 
     const enteredPin = pin.join("");
     if (enteredPin === CORRECT_PIN) {
-      setMessage("✅ PIN verified successfully!");
+      toast.success("PIN verified successfully!");
       setAttempts(0);
     } else {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
 
-      if (newAttempts >= 3) {
+      if (newAttempts >= MAX_ATTEMPTS) {
         setLocked(true);
-        setMessage("❌ Too many attempts. Locked for 10 seconds.");
+        toast.error("Too many attempts. Locked for 10 seconds.");
         setTimeout(() => {
           setLocked(false);
           setAttempts(0);
-          setMessage("");
           setPin(["", "", "", ""]);
-        }, 10000);
+        }, LOCK_TIMEOUT);
       } else {
-        setMessage("❌ Invalid PIN. Try again.");
+        toast.error("Invalid PIN. Try again.");
       }
     }
   };
@@ -69,7 +72,15 @@ function App() {
       <button onClick={handleSubmit} disabled={locked}>
         Verify PIN
       </button>
-      <p>{message}</p>
+      {/* Toast container */}
+      <ToastContainer 
+           position="top-right" 
+           autoClose={2000} 
+           hideProgressBar={false}
+           newestOnTop={true}
+           closeOnClick 
+           pauseOnFocusLoss={false}
+      />
     </div>
   );
 }
