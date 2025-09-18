@@ -11,7 +11,7 @@ The project demonstrates secure PIN-based authentication with both a **UI** and 
 
 ## 📂 Project Structure
 ```
-pin-app/
+doc_route/
 ├─ frontend/ # React + Vite + TypeScript + SWC PIN UI
 ├─ backend/ # Django + DRF + JWT PIN API
 └─ README.md # Project overview
