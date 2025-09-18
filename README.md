@@ -35,3 +35,5 @@ doc_route/
 - 📙 [Backend Documentation](./backend/README.md)  
 ---
 
+## 📜 License
+All Rights Reserved © 2025 by Wallem Shipping Philippines,Inc and its affliate companies
