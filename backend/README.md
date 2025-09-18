@@ -16,9 +16,13 @@ doc_route/
 
 ## ⚛️ Frontend (React)
 > Setup 
-- Create Project
+- Create a Directory
     ```
-    npm create vite@latest app -- --template react-swc-ts
+    app
+    ```
+- Create Project 
+    ```
+    npm create vite@latest . -- --template react-swc-ts
     ```
 - Install dependencies
     ```

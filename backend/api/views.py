@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from .models import Pin
-from django.contrib.auth.models import AnonymousUser
+
 
 class VerifyPinView(APIView):
     def post (self,request):
