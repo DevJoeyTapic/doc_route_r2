@@ -46,7 +46,6 @@ function App() {
         setTimeout(() => {
           setLocked(false);
           setAttempts(0);
-          setMessage("");
           setPin(["", "", "", ""]);
         }, LOCK_TIMEOUT);
       } else {
