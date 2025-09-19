@@ -1,0 +1,51 @@
+name: doc_route
+
+services:
+  db:
+    image: mariadb:10.6.18
+    container_name: db_doc_route
+    hostname: devdb
+    restart: always
+    ports:
+      - "3306:3306" # Expose MariaDB port
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpassword
+      MARIADB_DATABASE: db01
+      MARIADB_USER: user
+      MARIADB_PASSWORD: userpassword
+      TZ: Asia/Manila 
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app_network
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+    networks:
+      - app_network    
+
+  # web:
+  #   image: nginx:alpine
+  #   container_name: web_doc_route
+  #   hostname: devweb
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./web:/usr/share/nginx/html:ro  # Frontend files go here
+  #   networks:
+  #     - app_network  
+
+volumes:
+  db_data:
+
+networks:
+  app_network:
+    driver: bridge
