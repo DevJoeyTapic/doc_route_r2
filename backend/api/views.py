@@ -22,7 +22,7 @@ class VerifyPinView(APIView):
             if pin.check_pin(raw_pin, ignore_lock=True):
                 if pin.is_locked:
                     return Response(
-                        {"error": "Account is locked"},
+                        {"message": "Account is locked"},
                         status=status.HTTP_403_FORBIDDEN
                     )
 
