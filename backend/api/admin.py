@@ -6,8 +6,7 @@ class PinAdmin(admin.ModelAdmin):
     list_display = (
         "supplier_id",
         "pin_code",
-        "failed_attempts",
-        "locked_until",
+        "is_locked",
         "created_at"
         )
     ordering = ("created_at",)

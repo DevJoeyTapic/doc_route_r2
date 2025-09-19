@@ -1,43 +1,61 @@
+
+import jwt
+from datetime import datetime, timedelta
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from .models import Pin
 
 
 class VerifyPinView(APIView):
-    def post (self,request):
+    def post(self, request):
         raw_pin = request.data.get("pin_code")
-                
+
         if not raw_pin:
-            return Response({"error":"pin_code is required"},status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "pin_code is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         for pin in Pin.objects.all():
-          if pin.is_locked:
-             continue
-          
-          if pin.check_pin(raw_pin):
-             pin.failed_attempts = 0
-             pin.save() 
+            if pin.check_pin(raw_pin, ignore_lock=True):
+                if pin.is_locked:
+                    return Response(
+                        {"error": "Account is locked"},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
 
-            
-             refresh = RefreshToken()
-             access_token = AccessToken()
+                try:
+                    payload = {
+                        "supplier_id": pin.supplier_id,
+                        "pin_id": pin.id,
+                        "exp": datetime.utcnow() + timedelta(minutes=30),
+                        "iat": datetime.utcnow()
+                    }
+                    access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
-             refresh["supplier_id"] = pin.supplier_id
-             access_token["supplier_id"] = pin.supplier_id
+                    refresh_payload = {
+                        "supplier_id": pin.supplier_id,
+                        "pin_id": pin.id,
+                        "exp": datetime.utcnow() + timedelta(days=7),
+                        "iat": datetime.utcnow()
+                    }
+                    refresh_token = jwt.encode(refresh_payload, settings.SECRET_KEY, algorithm="HS256")
+                except Exception as e:
+                    return Response(
+                        {"error": f"Token generation failed: {str(e)}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
 
-             return Response({
-                "message": "PIN verified successfully",
-                "supplier_id": pin.supplier_id,
-                "access_token": str(access_token),
-                "refresh_token": str(refresh),
-             },status=status.HTTP_200_OK)
-          else:
-             pin.failed_attempts +=1
-             if pin.failed_attempts >=3:
-                pin.is_locked = True
-             pin.save()
-        return Response({"error":"Invalid PIN or account is locked"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({
+                    "message": "PIN verified successfully",
+                    "supplier_id": pin.supplier_id,
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                }, status=status.HTTP_200_OK)
 
-
+        return Response(
+            {"error": "Invalid PIN"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
