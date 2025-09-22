@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
-import axios from "axios";
+
 
 function PinPage() {
-  const [pin, setPin] = useState<string[]>(["", "", "", ""]);
+  const [pin, setPin] = useState<string[]>(["", "", "", "", "", ""]);
   const navigate = useNavigate();
+
+  const pinRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const handleChange = (value: string, index: number) => {
     if (/^\d?$/.test(value)) {
@@ -26,8 +30,8 @@ function PinPage() {
   const handleSubmit = async () => {
    
     const enteredPin = pin.join("");
-    if (enteredPin.length < 4) {
-      toast.warning("Enter all 4 digits.");
+    if (enteredPin.length < 6) {
+      toast.warning("Enter all 6 digits.");
       return;
     }
     try {
