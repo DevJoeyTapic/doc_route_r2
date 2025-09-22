@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "./App.css";
+import styles from "../styles/PinPage.module.css";
 
 
 function PinPage() {
@@ -89,9 +89,9 @@ function PinPage() {
 
 
   return (
-    <div className="container">
+    <div className={styles.container}>
       <h1>PIN Verification</h1>
-      <div className="pin-inputs">
+      <div className={styles.pinInputs}>
         {pin.map((digit, idx) => (
           <input
             key={idx}
@@ -100,10 +100,12 @@ function PinPage() {
             maxLength={1}
             value={digit}
             onChange={(e) => handleChange(e.target.value, idx)}
+            className={styles.pinInput}
+            ref={(el) => (pinRefs.current[idx] = el)}
           />
         ))}
       </div>
-      <button onClick={handleSubmit}>
+      <button ref={buttonRef} onClick={handleSubmit} className={styles.button}>
         Verify PIN
       </button>
       {/* Toast container */}
