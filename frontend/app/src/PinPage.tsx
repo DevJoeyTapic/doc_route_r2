@@ -7,13 +7,7 @@ import axios from "axios";
 
 function PinPage() {
   const [pin, setPin] = useState<string[]>(["", "", "", ""]);
-  const [locked, setLocked] = useState(false);
-  const [attempts, setAttempts] = useState(0);
   const navigate = useNavigate();
-
-  const CORRECT_PIN = "1234";
-  const MAX_ATTEMPTS = 3;
-  const LOCK_TIMEOUT = 10000; // 10 seconds
 
   const handleChange = (value: string, index: number) => {
     if (/^\d?$/.test(value)) {
@@ -29,36 +23,31 @@ function PinPage() {
     }
   };
 
-  const handleSubmit = () => {
-    if (locked) {
-      toast.error("PIN is locked. Try again later.");
-      return;
-    }
-
+  const handleSubmit = async () => {
+   
     const enteredPin = pin.join("");
     if (enteredPin.length < 4) {
-      toast.warning("⚠️ Enter all 4 digits.");
+      toast.warning("Enter all 4 digits.");
       return;
     }
-    if (enteredPin === CORRECT_PIN) {
-      toast.success("PIN verified successfully!");
-      setAttempts(0);
-      setPin(["", "", "", ""]);
-      setTimeout(() => navigate("/dashboard"), 1000); // Redirect after 1s
-    } else {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
+    try {
+      const response = await axios.post("http://localhost:8000/api/verify-pin/", {
+          pin_code: enteredPin,
+      });
+      console.log("✅ API Response:", response.data); // show full JSON in console
 
-      if (newAttempts >= MAX_ATTEMPTS) {
-        setLocked(true);
-        toast.error("Too many attempts. Locked for 10 seconds.");
-        setTimeout(() => {
-          setLocked(false);
-          setAttempts(0);
-          setPin(["", "", "", ""]);
-        }, LOCK_TIMEOUT);
+      toast.success("PIN verified successfully!");
+      localStorage.setItem("access_token", response.data.access_token);
+      localStorage.setItem("refresh_token", response.data.refresh_token);
+
+      setPin(["", "", "", ""]);
+      setTimeout(() => navigate("/dashboard"), 1000);
+    } 
+    catch (error: any) {
+      if (error.response?.status === 401) {
+            toast.error("Invalid PIN.");
       } else {
-        toast.error("Invalid PIN. Try again.");
+            toast.error("Account locked.");
       }
     }
   };
@@ -78,7 +67,7 @@ function PinPage() {
           />
         ))}
       </div>
-      <button onClick={handleSubmit} disabled={locked}>
+      <button onClick={handleSubmit}>
         Verify PIN
       </button>
       {/* Toast container */}

@@ -99,6 +99,7 @@ Tests are located in **`api/tests.py`**.
     pip install django django-extensions
     pip install djangorestframework
     pip install djangorestframework-simplejwt
+    pip install django-cors-headers
     pip install python-dotenv
     pip install mysqlclient
     pip install pymysql
