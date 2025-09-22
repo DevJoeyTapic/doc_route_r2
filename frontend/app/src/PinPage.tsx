@@ -28,7 +28,6 @@ function PinPage() {
   };
 
   const handleSubmit = async () => {
-   
     const enteredPin = pin.join("");
     if (enteredPin.length < 6) {
       toast.warning("Enter all 6 digits.");
@@ -43,8 +42,8 @@ function PinPage() {
       toast.success("PIN verified successfully!");
       localStorage.setItem("access_token", response.data.access_token);
       localStorage.setItem("refresh_token", response.data.refresh_token);
-
-      setPin(["", "", "", ""]);
+      localStorage.setItem("supplier_id", response.data.supplier_id);
+      setPin(["", "", "", "", "", ""]);
       setTimeout(() => navigate("/dashboard"), 1000);
     } 
     catch (error: any) {
@@ -55,6 +54,39 @@ function PinPage() {
       }
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        const focusable = [
+          ...pinRefs.current.filter((el) => el !== null),
+          buttonRef.current,
+        ].filter(Boolean) as HTMLElement[];
+
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const current = document.activeElement as HTMLElement;
+
+        if (e.shiftKey && current === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && current === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+ 
+   useEffect(() => {
+    pinRefs.current[0]?.focus();
+  }, []);
+
 
   return (
     <div className="container">
