@@ -9,8 +9,6 @@ function PinPage() {
   const [pin, setPin] = useState<string[]>(["", "", "", ""]);
   const navigate = useNavigate();
 
-  const LOCK_TIMEOUT = 10000; // 10 seconds
-
   const handleChange = (value: string, index: number) => {
     if (/^\d?$/.test(value)) {
       const newPin = [...pin];
@@ -29,16 +27,16 @@ function PinPage() {
    
     const enteredPin = pin.join("");
     if (enteredPin.length < 4) {
-      toast.warning("⚠️ Enter all 4 digits.");
+      toast.warning("Enter all 4 digits.");
       return;
     }
     try {
       const response = await axios.post("http://localhost:8000/api/verify-pin/", {
           pin_code: enteredPin,
       });
-      console.log("✅ API Response:", response.data); // 👈 show full JSON in console
-      
-      toast.success("✅ PIN verified successfully!");
+      console.log("✅ API Response:", response.data); // show full JSON in console
+
+      toast.success("PIN verified successfully!");
       localStorage.setItem("access_token", response.data.access_token);
       localStorage.setItem("refresh_token", response.data.refresh_token);
 
@@ -47,9 +45,9 @@ function PinPage() {
     } 
     catch (error: any) {
       if (error.response?.status === 401) {
-            toast.error("❌ Invalid PIN or account locked.");
+            toast.error("Invalid PIN.");
       } else {
-            toast.error("⚠️ Server error. Please try again later.");
+            toast.error("Account locked.");
       }
     }
   };
