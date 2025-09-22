@@ -101,7 +101,7 @@ function PinPage() {
             value={digit}
             onChange={(e) => handleChange(e.target.value, idx)}
             className={styles.pinInput}
-            ref={(el) => (pinRefs.current[idx] = el)}
+            ref={(el) => {pinRefs.current[idx] = el}}
           />
         ))}
       </div>
