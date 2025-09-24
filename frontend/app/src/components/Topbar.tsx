@@ -10,7 +10,6 @@ interface TopbarProps {
 }
 
 export default function Topbar({
-  sidebarOpen,
   toggleSidebar,
   activePage,
   supplierId,

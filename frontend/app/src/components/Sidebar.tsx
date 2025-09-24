@@ -17,7 +17,7 @@ export default function Sidebar({
 }: SidebarProps) {
   return (
     <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`}>
-      <h2 className={styles.logo}>⚓ My App</h2>
+      <h3 className={styles.logo}>⚓ Dashboard</h3>
       <nav>
         <ul>
           <li

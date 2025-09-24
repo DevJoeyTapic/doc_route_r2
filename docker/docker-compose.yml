@@ -31,18 +31,6 @@ services:
     networks:
       - app_network    
 
-  # web:
-  #   image: nginx:alpine
-  #   container_name: web_doc_route
-  #   hostname: devweb
-  #   restart: always
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./web:/usr/share/nginx/html:ro  # Frontend files go here
-  #   networks:
-  #     - app_network  
-
 volumes:
   db_data:
 
