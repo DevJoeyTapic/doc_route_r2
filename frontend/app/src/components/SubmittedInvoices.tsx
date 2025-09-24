@@ -1,32 +1,34 @@
 import styles from "../styles/Dashboard.module.css";
 
 export default function SubmittedInvoices() {
+  const invoices = [
+    { id: 1, number: "INV-001", date: "2025-09-24", amount: "₱5,000", status: "Pending" },
+    { id: 2, number: "INV-002", date: "2025-09-20", amount: "₱10,000", status: "Approved" },
+  ];
   return (
     <>
       <h2 className={styles.pageTitle}>Submitted Invoices</h2>
-      <div className={styles.invoiceList}>
-        <table className={styles.table}>
+      <div className={styles.invoiceCard}>
+        <table className={styles.invoiceTable}>
           <thead>
             <tr>
-              <th>Invoice #</th>
               <th>Date</th>
+              <th>Invoice No</th>
               <th>Amount</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>INV-001</td>
-              <td>2025-09-20</td>
-              <td>₱10,000</td>
-              <td>✅ Approved</td>
-            </tr>
-            <tr>
-              <td>INV-002</td>
-              <td>2025-09-21</td>
-              <td>₱5,500</td>
-              <td>⏳ Pending</td>
-            </tr>
+            {invoices.map((inv) => (
+              <tr key={inv.id}>
+                <td>{inv.date}</td>
+                <td>{inv.number}</td>
+                <td>{inv.amount}</td>
+                <td className={inv.status === "Approved" ? styles.statusApproved : styles.statusPending}>
+                  {inv.status}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
