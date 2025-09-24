@@ -22,10 +22,8 @@ function Dashboard() {
         <h2 className={styles.logo}>⚓ My App</h2>
         <nav>
           <ul>
-            <li>📊 Dashboard</li>
-            <li>👤 User Profile</li>
-            <li>📋 Table List</li>
-            <li>⚙️ Settings</li>
+            <li>📊 Submit Invoice</li>
+            <li>📋 Submitted Invoice</li>
           </ul>
         </nav>
         <button className={styles.logoutBtn} onClick={handleLogout}>
