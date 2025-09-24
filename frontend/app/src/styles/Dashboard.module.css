@@ -1,0 +1,97 @@
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: #1e293b;
+  color: #fff;
+  padding: 20px;
+  transition: transform 0.3s ease;
+}
+
+.sidebarOpen {
+  transform: translateX(0);
+}
+
+.logo {
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.logoutBtn {
+  margin-top: 2rem;
+  background: #ef4444;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+}
+
+.logoutBtn:hover {
+  background: #dc2626;
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f1f5f9;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.menuBtn {
+  display: none;
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Main */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  padding: 20px;
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%);
+    z-index: 10;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .menuBtn {
+    display: block;
+  }
+}
