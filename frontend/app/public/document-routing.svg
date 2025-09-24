@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <!-- Document background -->
+  <path d="M7 2h8l5 5v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+  
+  <!-- Document folded corner -->
+  <polyline points="15 2 15 8 21 8" fill="#bae6fd" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+
+  <!-- Text lines -->
+  <line x1="9" y1="15" x2="15" y2="15" stroke="#0369a1" stroke-width="2" stroke-linecap="round"></line>
+  <line x1="9" y1="19" x2="13" y2="19" stroke="#0369a1" stroke-width="2" stroke-linecap="round"></line>
+
+  <!-- Routing arrows -->
+  <polyline points="3 10 5 8 7 10" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+  <polyline points="3 14 5 16 7 14" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+</svg>

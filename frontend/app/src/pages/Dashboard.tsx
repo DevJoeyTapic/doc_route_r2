@@ -1,66 +1,56 @@
+
 import { useNavigate } from "react-router-dom";
-import { useState } from "react"; 
+import { useState } from "react";
+import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
+import SubmitInvoice from "../components/SubmitInvoice";
+import SubmittedInvoices from "../components/SubmittedInvoices";
 import styles from "../styles/Dashboard.module.css";
 
-function Dashboard() {
-  const supplierId = localStorage.getItem("supplier_id");
+type Page = "submit" | "submitted";
+
+export default function Dashboard() {
   const navigate = useNavigate();
+  const supplierId = localStorage.getItem("supplier_id");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activePage, setActivePage] = useState<Page>("submit");
 
   const handleLogout = () => {
     localStorage.clear();
     navigate("/");
+  };
 
-  }
+  const handleMenuClick = (page: Page) => {
+    setActivePage(page);
+    setSidebarOpen(false);
+  };
 
   return (
     <div className={styles.dashboard}>
-      {/* Sidebar */}
-      <aside
-        className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`}
-      >
-        <h2 className={styles.logo}>⚓ My App</h2>
-        <nav>
-          <ul>
-            <li>📊 Submit Invoice</li>
-            <li>📋 Submitted Invoice</li>
-          </ul>
-        </nav>
-        <button className={styles.logoutBtn} onClick={handleLogout}>
-          🔒 Logout
-        </button>
-      </aside>
+      <Sidebar
+        activePage={activePage}
+        onMenuClick={handleMenuClick}
+        onLogout={handleLogout}
+        sidebarOpen={sidebarOpen}
+      />
 
-      {/* Overlay (only visible on mobile when sidebar is open) */}
       {sidebarOpen && (
-        <div
-          className={styles.overlay}
-          onClick={() => setSidebarOpen(false)}
-        ></div>
+        <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Main Content */}
       <main className={styles.main}>
-        <header className={styles.topbar}>
-          <button
-            className={styles.menuBtn}
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            ☰
-          </button>
-          <h1>Dashboard</h1>
-        </header>
+        <Topbar
+          sidebarOpen={sidebarOpen}
+          toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          activePage={activePage}
+          supplierId={supplierId}
+        />
 
         <section className={styles.content}>
-          <p>Welcome to your dashboard 🎉</p>
-          <p>
-            Supplier ID: <strong>{supplierId}</strong>
-          </p>
+          {activePage === "submit" && <SubmitInvoice />}
+          {activePage === "submitted" && <SubmittedInvoices />}
         </section>
       </main>
     </div>
   );
 }
-
-export default Dashboard;
-

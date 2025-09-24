@@ -2,6 +2,7 @@
   display: flex;
   min-height: 100vh;
   font-family: "Roboto", sans-serif;
+  background: #f8fafc;
 }
 
 /* Sidebar */
@@ -11,16 +12,45 @@
   color: #fff;
   padding: 20px;
   transition: transform 0.3s ease;
+  z-index: 20;
 }
 
 .sidebarOpen {
   transform: translateX(0);
+  box-shadow: 2px 0 8px rgba(0,0,0,0.2);
 }
 
 .logo {
   font-size: 1.4rem;
   margin-bottom: 1.5rem;
 }
+
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar nav li {
+  margin: 15px 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.sidebar nav li:hover {
+  background: #334155;
+}
+
+.sidebar nav li.active {
+  background: #475569;
+  font-weight: bold;
+  border-left: 4px solid #38bdf8; /* light blue accent */
+  padding-left: 6px;
+}
+
+
 
 .logoutBtn {
   margin-top: 2rem;
@@ -47,12 +77,33 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
+.topbarInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.desktopTitle {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.topbar h1 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
 .menuBtn {
   display: none;
   font-size: 1.5rem;
   background: none;
   border: none;
   cursor: pointer;
+}
+
+.supplier {
+  font-size: 0.9rem;
+  color: #475569;
 }
 
 /* Main */
@@ -74,25 +125,74 @@
   right: 0;
   bottom: 0;
   background: rgba(0,0,0,0.5);
-  z-index: 5;
+  z-index: 15;
+}
+
+/* Prevent scroll when sidebar is open */
+body.sidebar-open {
+  overflow: hidden;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+  .topbar h1 {
+    display: none;
+  }
+
   .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100%;
     transform: translateX(-100%);
-    z-index: 10;
   }
 
   .sidebarOpen {
     transform: translateX(0);
   }
 
+  .main {
+    margin-left: 0;
+  }
+
   .menuBtn {
     display: block;
   }
+}
+
+/* Form */
+.invoiceForm {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  max-width: 600px;
+}
+.formGroup {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+.formGroup label {
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  color: #475569;
+}
+.formGroup input,
+.formGroup textarea {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+.submitBtn {
+  background: #2563eb;
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.submitBtn:hover {
+  background: #1d4ed8;
 }
