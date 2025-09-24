@@ -9,6 +9,12 @@
   background: #f9f9f9;
 }
 
+h1 {
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+
 .title {
   margin-bottom: 20px;
   font-size: 22px;
@@ -33,12 +39,15 @@
 .button {
   padding: 10px 20px;
   font-size: 16px;
-  margin-top: 10px;
+  margin: 20px auto 0;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   background: #007bff;
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .button:disabled {
@@ -46,8 +55,28 @@
   cursor: not-allowed;
 }
 
+.btnContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .message {
   margin-top: 15px;
   font-weight: bold;
 }
 
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

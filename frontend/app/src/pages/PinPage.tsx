@@ -8,6 +8,7 @@ import styles from "../styles/PinPage.module.css";
 
 function PinPage() {
   const [pin, setPin] = useState<string[]>(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const pinRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -33,6 +34,9 @@ function PinPage() {
       toast.warning("Enter all 6 digits.");
       return;
     }
+
+    setLoading(true);
+
     try {
       const response = await axios.post("http://localhost:8000/api/verify-pin/", {
           pin_code: enteredPin,
@@ -44,7 +48,7 @@ function PinPage() {
       localStorage.setItem("refresh_token", response.data.refresh_token);
       localStorage.setItem("supplier_id", response.data.supplier_id);
       setPin(["", "", "", "", "", ""]);
-      setTimeout(() => navigate("/dashboard"), 1000);
+      setTimeout(() => navigate("/dashboard"), 500);
     } 
     catch (error: any) {
       if (error.response?.status === 401) {
@@ -52,6 +56,9 @@ function PinPage() {
       } else {
             toast.error("Account locked.");
       }
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -105,9 +112,23 @@ function PinPage() {
           />
         ))}
       </div>
-      <button ref={buttonRef} onClick={handleSubmit} className={styles.button}>
-        Verify PIN
+      <button 
+         ref={buttonRef} 
+         onClick={handleSubmit} 
+         className={styles.button}
+         disabled={loading}
+      >
+        {loading ? (
+          <div className={styles.btnContent}>
+              <div className={styles.spi}>
+              Verifying... 
+              </div>
+          </div>
+        ): (
+          "Submit"
+        )}
       </button>
+
       {/* Toast container */}
       <ToastContainer 
            position="top-right" 
