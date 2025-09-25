@@ -42,7 +42,6 @@ export default function SubmitInvoice() {
 
   return (
     <>
-      <h2 className={styles.pageTitle}>Submit Invoice</h2>
       <form className={styles.invoiceForm} onSubmit={handleSubmit}>
         <div className={styles.formGroup}>
           <label>Date</label>
@@ -74,10 +73,6 @@ export default function SubmitInvoice() {
         <div className={styles.formGroup}>
           <label>Attachment</label>
           <input type="file" />
-        </div>
-        <div className={styles.formGroup}>
-          <label>Remarks</label>
-          <textarea placeholder="Enter remarks"></textarea>
         </div>
         <button type="submit" className={styles.submitBtn}>
           Submit

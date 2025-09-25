@@ -44,6 +44,7 @@ export default function Dashboard() {
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           activePage={activePage}
           supplierId={supplierId}
+          onLogout={handleLogout} 
         />
 
         <section className={styles.content}>

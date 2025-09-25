@@ -7,7 +7,6 @@ export default function SubmittedInvoices() {
   ];
   return (
     <>
-      <h2 className={styles.pageTitle}>Submitted Invoices</h2>
       <div className={styles.invoiceCard}>
         <table className={styles.invoiceTable}>
           <thead>

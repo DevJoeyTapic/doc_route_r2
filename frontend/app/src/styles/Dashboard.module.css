@@ -15,6 +15,9 @@
   padding: 20px;
   transition: transform 0.3s ease;
   z-index: 20;
+  display: flex;              /* ✅ make sidebar flex */
+  flex-direction: column;     /* stack items vertically */
+  justify-content: space-between; /* ✅ push logout button to bottom */
 }
 
 .sidebarOpen {
@@ -24,6 +27,10 @@
 .logo {
   font-size: 1.4rem;
   margin-bottom: 1.5rem;
+}
+
+.sidebar nav {
+  flex: 1; /* ✅ let nav take available space so logout stays at bottom */
 }
 
 .sidebar nav ul {
@@ -90,6 +97,23 @@
 .supplier {
   font-size: 0.9rem;
   color: #475569;
+}
+
+/* Small Logout Icon Button (Topbar) */
+.logoutIconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #ef4444;
+  margin-left: 15px;
+  display: none; /* ✅ hidden by default (desktop) */
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.logoutIconBtn:hover {
+  color: #dc2626;
 }
 
 /* ────────────── MAIN CONTENT ────────────── */
@@ -230,6 +254,25 @@ textarea {
   .invoiceList {
     width: 100%;
     padding: 15px;
+  }
+
+  /* ✅ Supplier + Logout inline */
+  .topbarRight {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .supplier {
+    white-space: nowrap;
+  }
+
+  .logoutIconBtn {
+    display: flex; /* show logout only on mobile */
+  }
+
+  .logoutBtn {
+    display: none; /* hide sidebar logout on mobile */
   }
 }
 
