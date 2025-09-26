@@ -1,0 +1,71 @@
+name: doc_route
+
+services:
+  # backend:
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/Dockerfile
+  #   container_name: doc_backend
+  #   command: python3 manage.py runserver 0.0.0.0:8000
+  #   volumes:
+  #     - ../backend:/app
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - app_network
+  #   restart: always
+
+  # db:
+  #   image: mariadb:10.6.18
+  #   container_name: db_doc_route
+  #   restart: always
+  #   ports:
+  #     - "3306:3306"
+  #   environment:
+  #     MARIADB_ROOT_PASSWORD: rootpassword
+  #     MARIADB_DATABASE: db01
+  #     MARIADB_USER: user
+  #     MARIADB_PASSWORD: userpassword
+  #     TZ: Asia/Manila 
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   networks:
+  #     - app_network
+  
+  # phpmyadmin:
+  #   image: phpmyadmin/phpmyadmin
+  #   container_name: phpmyadmin
+  #   restart: always
+  #   ports:
+  #     - "8081:80"
+  #   environment:
+  #     PMA_HOST: db
+  #     MYSQL_ROOT_PASSWORD: rootpassword
+  #   networks:
+  #     - app_network    
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend.Dockerfile
+    container_name: doc_frontend
+    working_dir: /app
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+    restart: always
+
+volumes:
+  db_data:
+
+networks:
+  app_network:
+    driver: bridge
