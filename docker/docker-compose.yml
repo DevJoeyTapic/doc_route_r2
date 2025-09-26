@@ -12,6 +12,8 @@ services:
       - node_modules_cache:/app/node_modules
     ports:
       - "3000:3000"
+    depends_on:
+      - backend
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
@@ -19,6 +21,46 @@ services:
     networks:
       - app_network
     restart:  unless-stopped
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: doc_backend
+    command: python3 manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ../backend:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - app_network
+    restart: always
+  db:
+    image: mariadb:10.6.18
+    container_name: doc_db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpassword
+      MARIADB_DATABASE: doc_route_db
+      MARIADB_USER: user
+      MARIADB_PASSWORD: userpassword
+      TZ: Asia/Manila 
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app_network
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: doc_phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+    networks:
+      - app_network   
 
 networks:
   app_network:
@@ -26,3 +68,4 @@ networks:
 
 volumes:
   node_modules_cache:
+  db_data:
