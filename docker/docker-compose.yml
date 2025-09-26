@@ -5,7 +5,7 @@ services:
     build:
       context: ..
       dockerfile: docker/frontend.Dockerfile
-    container_name: doc_frontend
+    container_name: doc1_frontend
     working_dir: /app
     volumes:
       - ../frontend:/app
@@ -25,7 +25,7 @@ services:
     build:
       context: ..
       dockerfile: docker/backend.Dockerfile
-    container_name: doc_backend
+    container_name: doc2_backend
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ../backend:/app
@@ -36,7 +36,7 @@ services:
     restart: always
   db:
     image: mariadb:10.6.18
-    container_name: doc_db
+    container_name: doc3_db
     restart: always
     ports:
       - "3306:3306"
@@ -48,6 +48,22 @@ services:
       TZ: Asia/Manila 
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - app_network
+  
+  localstack:
+    image: localstack/localstack:latest   # no custom build needed
+    container_name: doc_localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - DATA_DIR=/var/lib/localstack/data
+      - DEFAULT_REGION=ap-southeast-1
+    volumes:
+      - ./localstack_data:/var/lib/localstack
+      - ./docker/create-bucket.sh:/etc/localstack/init/ready.d/create-bucket.sh:ro
     networks:
       - app_network
   phpmyadmin:
