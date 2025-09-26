@@ -7,17 +7,22 @@ services:
       dockerfile: docker/frontend.Dockerfile
     container_name: doc_frontend
     working_dir: /app
-    # volumes:
-    #   - ../frontend:/app
-    #   - /app/node_modules
+    volumes:
+      - ../frontend:/app
+      - node_modules_cache:/app/node_modules
     ports:
       - "3000:3000"
-    # depends_on:
-    #   - backend
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     networks:
       - app_network
-    restart: always
+    restart:  unless-stopped
 
 networks:
   app_network:
     driver: bridge
+
+volumes:
+  node_modules_cache:
