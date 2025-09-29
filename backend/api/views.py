@@ -1,6 +1,6 @@
 
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -29,17 +29,17 @@ class VerifyPinView(APIView):
                 try:
                     payload = {
                         "supplier_id": pin.supplier_id,
-                        "pin_id": pin.id,
-                        "exp": datetime.utcnow() + timedelta(minutes=30),
-                        "iat": datetime.utcnow()
+                        "pin_id": pin.pk,
+                        "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
+                        "iat": datetime.now(timezone.utc)
                     }
                     access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
                     refresh_payload = {
                         "supplier_id": pin.supplier_id,
-                        "pin_id": pin.id,
-                        "exp": datetime.utcnow() + timedelta(days=7),
-                        "iat": datetime.utcnow()
+                        "pin_id": pin.pk,
+                        "exp": datetime.now(timezone.utc) + timedelta(days=7),
+                        "iat": datetime.now(timezone.utc)
                     }
                     refresh_token = jwt.encode(refresh_payload, settings.SECRET_KEY, algorithm="HS256")
                 except Exception as e:
