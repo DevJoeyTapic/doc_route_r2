@@ -9,6 +9,7 @@ export default function SubmitInvoice() {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState<string>(""); // formatted for UI
   const [rawAmount, setRawAmount] = useState<number>(0); // numeric for saving
+  const [attachment, setAttachment] = useState<File | null>(null);
 
   
   // Autofill date with today’s date
@@ -57,6 +58,11 @@ export default function SubmitInvoice() {
 
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setAttachment(file);
+  };
+
   // Validation using toast
   const validate = () => {
     let isValid = true;
@@ -77,6 +83,14 @@ export default function SubmitInvoice() {
       toast.error("Amount must be greater than 0");
       isValid = false;
     }
+    // Validate file attachment
+    if (!attachment) {
+      toast.error("Attachment is required");
+      isValid = false;
+    } else if (attachment.type !== "application/pdf") {
+      toast.error("Only PDF files are allowed");
+      isValid = false;
+    }
 
     return isValid;
   };
@@ -89,8 +103,8 @@ export default function SubmitInvoice() {
       invoiceDate,
       invoiceNumber,
       description,
-      amountFormatted: amount,
-      amountRaw: rawAmount,
+      amount: rawAmount,
+      attachment,
     });
 
     toast.success("Invoice submitted successfully!");
@@ -142,7 +156,11 @@ export default function SubmitInvoice() {
         </div>
         <div className={styles.formGroup}>
           <label>Attachment</label>
-          <input type="file" />
+          <input 
+            type="file"
+            accept="application/pdf" 
+            onChange={handleFileChange}
+          />
         </div>
         <button type="submit" className={styles.submitBtn}>
           Submit
