@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Pin
+from .serializers import SupplierSerializer
 
 
 class VerifyPinView(APIView):
@@ -18,7 +19,7 @@ class VerifyPinView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        for pin in Pin.objects.all():
+        for pin in Pin.objects.select_related('supplier').all(): 
             if pin.check_pin(raw_pin, ignore_lock=True):
                 if pin.is_locked:
                     return Response(
@@ -27,8 +28,10 @@ class VerifyPinView(APIView):
                     )
 
                 try:
+                    supplier_id = str(pin.supplier.supplier_id)
+
                     payload = {
-                        "supplier_id": pin.supplier_id,
+                        "supplier_id": supplier_id,
                         "pin_id": pin.pk,
                         "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
                         "iat": datetime.now(timezone.utc)
@@ -36,7 +39,7 @@ class VerifyPinView(APIView):
                     access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
                     refresh_payload = {
-                        "supplier_id": pin.supplier_id,
+                        "supplier_id": supplier_id,
                         "pin_id": pin.pk,
                         "exp": datetime.now(timezone.utc) + timedelta(days=7),
                         "iat": datetime.now(timezone.utc)
@@ -50,7 +53,8 @@ class VerifyPinView(APIView):
 
                 return Response({
                     "message": "PIN verified successfully",
-                    "supplier_id": pin.supplier_id,
+                    "supplier_id": pin.supplier.supplier_id,
+                    "supplier_name": pin.supplier.supplier_name,
                     "access_token": access_token,
                     "refresh_token": refresh_token,
                 }, status=status.HTTP_200_OK)

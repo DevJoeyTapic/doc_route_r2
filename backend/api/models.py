@@ -26,7 +26,7 @@ class Pin(models.Model):
         on_delete=models.CASCADE,
         related_name="pin"
     )
-    pin_code = models.CharField(max_length=128, unique=True)
+    pin_code = models.CharField(max_length=128)
     is_locked = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -46,7 +46,7 @@ class Pin(models.Model):
         return f"PIN for {self.supplier.supplier_name}"
 
 class Invoice(models.Model):
-    sumitted_date = models.DateTimeField()
+    submitted_date = models.DateTimeField()
     invoice_number = models.CharField(max_length=100, unique=True)
     supplier = models.ForeignKey(
         Supplier,
