@@ -28,7 +28,7 @@ export default function Topbar({
 
       <div className={styles.topbarRight}>
         <span className={styles.supplier}>
-          Supplier ID: <strong>{supplierId}</strong>
+          Supplier Name: <strong>{supplierId}</strong>
         </span>
 
         {/* Small Logout Icon for mobile */}

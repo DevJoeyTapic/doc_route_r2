@@ -65,6 +65,7 @@ function PinPage() {
       localStorage.setItem("access_token", response.data.access_token);
       localStorage.setItem("refresh_token", response.data.refresh_token);
       localStorage.setItem("supplier_id", response.data.supplier_id);
+      localStorage.setItem("supplier_name", response.data.supplier_name);
 
       setTimeout(() => navigate("/dashboard"), 500);
     } 

@@ -11,7 +11,7 @@ type Page = "submit" | "submitted";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const supplierId = localStorage.getItem("supplier_id");
+  const supplierId = localStorage.getItem("supplier_name");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activePage, setActivePage] = useState<Page>("submit");
 
