@@ -9,6 +9,7 @@ export default function SubmitInvoice() {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState<string>(""); // formatted for UI
   const [rawAmount, setRawAmount] = useState<number>(0); // numeric for saving
+
   
   // Autofill date with today’s date
   useEffect(() => {
@@ -19,33 +20,41 @@ export default function SubmitInvoice() {
 
   // Handle live amount formatting
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    
-    value = value.replace(/[^0-9]/g, ""); // keep only digits
+    const value = e.target.value;
 
-    // Prevent multiple dots
-    const parts = value.split(".");
-    if (parts.length > 2) {
-      value = parts[0] + "." + parts[1];
+    // Allow only digits and up to one decimal point, 2 decimals max
+    const regex = /^(\d+(\.\d{0,2})?)?$/;
+
+    if (regex.test(value)) {
+      setAmount(value); // keep typed string as-is
+      setRawAmount(parseFloat(value) || 0);
     }
+  };
 
-    const num = parseFloat(value);
+  const handleAmountFocus = () => {
 
-    if (!isNaN(num)) {
-      setRawAmount(num);
+    // Strip formatting back to plain number
+    if (rawAmount) {
+      setAmount(rawAmount.toString());
+    }
+  };
+// On blur, format as PHP currency
+  const handleAmountBlur = () => {
 
-      // Format as PHP currency without changing user cursor position too aggressively
-      const formatted = num.toLocaleString("en-PH", {
-        style: "currency",
-        currency: "PHP",
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      setAmount(formatted);
-    } else {
-      setRawAmount(0);
+    if (!rawAmount) {
       setAmount("");
+      return;
     }
+
+    setAmount(
+        rawAmount.toLocaleString("en-PH", {
+          style: "currency",
+          currency: "PHP",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+    );
+
   };
 
   // Validation using toast
@@ -118,6 +127,8 @@ export default function SubmitInvoice() {
             placeholder="₱0.00"
             value={amount}
             onChange={handleAmountChange}
+            onFocus={handleAmountFocus}
+            onBlur={handleAmountBlur}
           />
         </div>
         <div className={styles.formGroup}>
