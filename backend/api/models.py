@@ -17,7 +17,7 @@ class Supplier(models.Model):
         verbose_name_plural = "Suppliers"
 
     def __str__(self):
-        return f"{self.supplier_name} ({self.supplier_id})"
+        return f"{self.supplier_name}"
 
 
 class Pin(models.Model):
@@ -46,13 +46,18 @@ class Pin(models.Model):
         return f"PIN for {self.supplier.supplier_name}"
 
 class Invoice(models.Model):
-    submitted_date = models.DateTimeField()
-    invoice_number = models.CharField(max_length=100, unique=True)
+    invoice_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
     supplier = models.ForeignKey(
         Supplier,
         on_delete=models.CASCADE,
         related_name='invoices'
     )
+    invoice_number = models.CharField(max_length=100, unique=True)
+    submitted_date = models.DateTimeField()
     amount_due = models.DecimalField(max_digits=12,decimal_places=2)
     description = models.TextField(blank=True,null=True)
     date_created = models.DateTimeField(auto_now_add=True)

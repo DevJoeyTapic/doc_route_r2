@@ -32,6 +32,6 @@ class PinAdmin(admin.ModelAdmin):
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ("invoice_number", "supplier", "amount_due", "submitted_date", "date_created")
+    list_display = ("invoice_number", "supplier", "amount_due", "submitted_date")
     list_filter = ("supplier", "submitted_date")
     search_fields = ("invoice_number", "supplier__supplier_name")
