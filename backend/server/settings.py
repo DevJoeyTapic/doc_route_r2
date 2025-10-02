@@ -148,7 +148,7 @@ AWS_ACCESS_KEY_ID = "test"
 AWS_SECRET_ACCESS_KEY = "test"
 
 # LocalStack endpoint (not AWS)
-AWS_S3_ENDPOINT_URL = "http://localhost:4566"
+AWS_S3_ENDPOINT_URL = "http://doc_localstack:4566"
 
 # Optional: make files public by default
 AWS_DEFAULT_ACL = "public-read"
@@ -157,9 +157,9 @@ AWS_DEFAULT_ACL = "public-read"
 AWS_S3_REGION_NAME = "ap-southeast-1"
 
 # Ensure uploads go into invoices/pdfs/
-AWS_LOCATION = "invoices/pdfs"
+# AWS_LOCATION = "invoices/pdfs"
 
 AWS_S3_CUSTOM_DOMAIN = f"localhost:4566/{AWS_STORAGE_BUCKET_NAME}"
 
 # Full media URL (Django will prepend this to FileField.url)
-MEDIA_URL = f"http://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
+# MEDIA_URL = f"http://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"

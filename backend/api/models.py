@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.hashers import make_password,check_password
+from .storage_backends import MediaStorage
 
 class Supplier(models.Model):
     supplier_id = models.UUIDField(
@@ -60,9 +61,14 @@ class Invoice(models.Model):
     submitted_date = models.DateTimeField()
     amount_due = models.DecimalField(max_digits=12,decimal_places=2)
     description = models.TextField(blank=True,null=True)
-    pdf_file = models.FileField(upload_to="invoices/pdfs/",blank=True,null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
+    pdf_file = models.FileField(
+        storage=MediaStorage(),
+        upload_to="",
+        blank=True,
+        null=True
+    )
 
     class Meta:
         ordering = ["-date_created"]
