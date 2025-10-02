@@ -70,7 +70,7 @@ services:
       - DEFAULT_REGION=ap-southeast-1
     volumes:
       - ./localstack_data:/var/lib/localstack
-      - ./docker/create-bucket.sh:/etc/localstack/init/ready.d/create-bucket.sh:ro
+      - ./create-bucket:/etc/localstack/init/ready.d/create-bucket.sh:ro
     networks:
       - app_network
   phpmyadmin:

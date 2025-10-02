@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework',
     'rest_framework_simplejwt',
+    'storages',
 
 ]
 
@@ -135,3 +136,30 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Vite dev server
 ]
+
+# Use S3 for file storage
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# Bucket name (create it in LocalStack first)
+AWS_STORAGE_BUCKET_NAME = "doc-route-bucket"
+
+# Fake credentials (LocalStack doesn’t need real AWS keys, but boto3 requires them)
+AWS_ACCESS_KEY_ID = "test"
+AWS_SECRET_ACCESS_KEY = "test"
+
+# LocalStack endpoint (not AWS)
+AWS_S3_ENDPOINT_URL = "http://localhost:4566"
+
+# Optional: make files public by default
+AWS_DEFAULT_ACL = "public-read"
+
+# Region (LocalStack supports any region)
+AWS_S3_REGION_NAME = "ap-southeast-1"
+
+# Ensure uploads go into invoices/pdfs/
+AWS_LOCATION = "invoices/pdfs"
+
+AWS_S3_CUSTOM_DOMAIN = f"localhost:4566/{AWS_STORAGE_BUCKET_NAME}"
+
+# Full media URL (Django will prepend this to FileField.url)
+MEDIA_URL = f"http://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"

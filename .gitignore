@@ -1,2 +1,3 @@
 .venv
 docker/localstack_data/
+backend/invoices/

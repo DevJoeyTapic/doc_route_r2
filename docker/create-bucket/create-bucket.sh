@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+BUCKET_NAME="doc-route-bucket"
+PREFIX="invoices/pdfs/"
+
+# Wait for LocalStack S3 to be ready
+echo "Waiting for LocalStack S3 to be ready..."
+until awslocal s3 ls > /dev/null 2>&1; do
+  sleep 2
+done
+
+# Create the bucket if it doesn't exist
+if ! awslocal s3 ls | grep -q "$BUCKET_NAME"; then
+  echo "Creating S3 bucket: $BUCKET_NAME"
+  awslocal s3 mb s3://$BUCKET_NAME
+else
+  echo "Bucket already exists: $BUCKET_NAME"
+fi
