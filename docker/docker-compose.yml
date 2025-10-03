@@ -43,6 +43,7 @@ services:
       dockerfile: docker/backend.Dockerfile
     env_file:
       - ../backend/.env
+      
     container_name: doc2_backend
     environment:
       DB_HOST: db   # override host for Docker
@@ -51,6 +52,7 @@ services:
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ../backend:/app
+      - ../media_data:/app/media
     ports:
       - "8000:8000"
     networks:
@@ -58,21 +60,21 @@ services:
     restart: always
 
   
-  localstack:
-    image: localstack/localstack:latest   # no custom build needed
-    container_name: doc_localstack
-    ports:
-      - "4566:4566"
-    environment:
-      - SERVICES=s3
-      - DEBUG=1
-      - DATA_DIR=/var/lib/localstack/data
-      - DEFAULT_REGION=ap-southeast-1
-    volumes:
-      - ./localstack_data:/var/lib/localstack
-      - ./create-bucket:/etc/localstack/init/ready.d/create-bucket.sh:ro
-    networks:
-      - app_network
+  # localstack:
+  #   image: localstack/localstack:latest   # no custom build needed
+  #   container_name: doc_localstack
+  #   ports:
+  #     - "4566:4566"
+  #   environment:
+  #     - SERVICES=s3
+  #     - DEBUG=1
+  #     - DATA_DIR=/var/lib/localstack/data
+  #     - DEFAULT_REGION=ap-southeast-1
+  #   volumes:
+  #     - ./localstack_data:/var/lib/localstack
+  #     - ./create-bucket:/etc/localstack/init/ready.d/create-bucket.sh:ro
+  #   networks:
+  #     - app_network
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: doc_phpmyadmin

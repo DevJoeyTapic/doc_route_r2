@@ -48,3 +48,12 @@ class InvoiceAdmin(admin.ModelAdmin):
                 "<a href='{}' target='_blank'>View PDF</a>", obj.pdf_file.url
             )
         return "-"
+    
+    @admin.display(description="PDF Preview")
+    def pdf_preview(self, obj):
+        if obj.pdf_file:
+            return format_html(
+                "<iframe src='{}' width='100%' height='500px' style='border:none;'></iframe>",
+                obj.pdf_file.url
+            )
+        return "No PDF uploaded"
