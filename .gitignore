@@ -1,5 +1,4 @@
 .venv
 docker/localstack_data/
-backend/invoices/
 docker/tmp
 media_data/
