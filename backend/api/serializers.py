@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Pin, Supplier
+from .models import Pin, Supplier, Invoice
 
 class SupplierSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,5 +21,21 @@ class PinSerializer(serializers.ModelSerializer):
         extra_kwargs = {"pin_code":{"write_only": True}}
 
 
+class InvoiceUploadSerializer(serializers.ModelSerializer):
+    supplier = serializers.PrimaryKeyRelatedField(queryset=Supplier.objects.all())
 
+    class Meta:
+        model = Invoice
+        fields = [
+            "invoice_id",
+            "supplier",
+            "invoice_number",
+            "submitted_date",
+            "amount_due",
+            "description",
+            "pdf_file",
+            "date_created",
+            "date_modified",
+        ]
+        read_only_fields = ["invoice_id", "date_created", "date_modified"]
     

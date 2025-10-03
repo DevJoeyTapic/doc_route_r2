@@ -5,10 +5,16 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Pin
-from .serializers import SupplierSerializer
+from rest_framework.parsers import MultiPartParser, FormParser
+
+from .models import Pin, Invoice
+from .serializers import SupplierSerializer, InvoiceUploadSerializer
+from .authentication import JWTAuthentication 
 
 
+# ---------------------------
+# Verify PIN and issue tokens
+# ---------------------------
 class VerifyPinView(APIView):
     def post(self, request):
         raw_pin = request.data.get("pin_code")
@@ -63,3 +69,24 @@ class VerifyPinView(APIView):
             {"error": "Invalid PIN"},
             status=status.HTTP_401_UNAUTHORIZED
         )
+
+# ---------------------------
+# Invoice Upload Endpoint
+# ---------------------------
+class InvoiceUploadView(APIView):
+    authentication_classes = [JWTAuthentication]   # ✅ now imported from authentication.py
+    parser_classes = [MultiPartParser, FormParser] # ✅ handle file uploads
+
+    def post(self, request):
+        supplier = request.user   # ✅ supplier is set by JWTAuthentication
+        data = request.data.copy()
+        data["supplier"] = supplier.supplier_id     # link invoice to supplier
+
+        serializer = InvoiceUploadSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Invoice uploaded successfully", "invoice": serializer.data},
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
