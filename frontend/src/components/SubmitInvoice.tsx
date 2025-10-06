@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "../styles/Dashboard.module.css";
@@ -21,6 +21,7 @@ export default function SubmitInvoice({
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   
   // Autofill date with today’s date
   useEffect(() => {
@@ -141,25 +142,15 @@ export default function SubmitInvoice({
       setAmount("");
       setRawAmount(0);
       setAttachment(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error) {
       console.error("Upload error:", error);
       toast.error("Failed to submit invoice");
     } finally {
       setIsSubmitting(false);
     };
-
-
-
-    console.log({
-      invoiceDate,
-      invoiceNumber,
-      description,
-      amount: rawAmount,
-      attachment,
-    });
-
-    // toast.success("Invoice submitted successfully!");
-    // Send rawAmount to your API if saving to DB
   };  
 
 
@@ -208,6 +199,7 @@ export default function SubmitInvoice({
         <div className={styles.formGroup}>
           <label>Attachment</label>
           <input 
+            ref={fileInputRef}
             type="file"
             accept="application/pdf" 
             onChange={handleFileChange}
