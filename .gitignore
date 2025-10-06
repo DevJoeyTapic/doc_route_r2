@@ -2,3 +2,4 @@
 docker/localstack_data/
 docker/tmp
 media_data/
+backend/media/

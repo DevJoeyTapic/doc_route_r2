@@ -3,13 +3,23 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "../styles/Dashboard.module.css";
 
-export default function SubmitInvoice() {
+interface SubmitInvoiceProps {
+  supplierId: string | null;
+  accessToken: string | null;
+}
+
+export default function SubmitInvoice({
+  supplierId,
+  accessToken
+}:SubmitInvoiceProps
+) {
   const [invoiceDate, setInvoiceDate] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState<string>(""); // formatted for UI
   const [rawAmount, setRawAmount] = useState<number>(0); // numeric for saving
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   
   // Autofill date with today’s date
@@ -95,9 +105,50 @@ export default function SubmitInvoice() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("supplier_id", supplierId ?? "");
+      formData.append("submitted_date", invoiceDate);
+      formData.append("invoice_number", invoiceNumber);
+      formData.append("description", description);
+      formData.append("amount_due", rawAmount.toString());
+      if (attachment) formData.append("pdf_file", attachment);
+
+      const response = await fetch("http://localhost:8000/invoices/upload/", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Upload failed");
+      }
+
+      toast.success("Invoice submitted successfully!");
+      // Reset form
+      setInvoiceDate(new Date().toISOString().split("T")[0]);
+      setInvoiceNumber("");
+      setDescription("");
+      setAmount("");
+      setRawAmount(0);
+      setAttachment(null);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to submit invoice");
+    } finally {
+      setIsSubmitting(false);
+    };
+
+
 
     console.log({
       invoiceDate,
@@ -107,7 +158,7 @@ export default function SubmitInvoice() {
       attachment,
     });
 
-    toast.success("Invoice submitted successfully!");
+    // toast.success("Invoice submitted successfully!");
     // Send rawAmount to your API if saving to DB
   };  
 
@@ -162,8 +213,12 @@ export default function SubmitInvoice() {
             onChange={handleFileChange}
           />
         </div>
-        <button type="submit" className={styles.submitBtn}>
-          Submit
+        <button 
+           type="submit" 
+           className={styles.submitBtn}
+           disabled={isSubmitting}
+        >
+          {isSubmitting ? "Submitting..." : "Submit"}
         </button>
       </form>
       <ToastContainer position="top-right" autoClose={3000} />

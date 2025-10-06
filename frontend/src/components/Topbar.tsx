@@ -6,14 +6,14 @@ interface TopbarProps {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
   activePage: Page;
-  supplierId: string | null;
+  supplierName: string | null;
   onLogout: () => void;
 }
 
 export default function Topbar({
   toggleSidebar,
   activePage,
-  supplierId,
+  supplierName,
   onLogout,
 }: TopbarProps) {
   return (
@@ -28,7 +28,7 @@ export default function Topbar({
 
       <div className={styles.topbarRight}>
         <span className={styles.supplier}>
-          Supplier Name: <strong>{supplierId}</strong>
+          Supplier Name: <strong>{supplierName}</strong>
         </span>
 
         {/* Small Logout Icon for mobile */}

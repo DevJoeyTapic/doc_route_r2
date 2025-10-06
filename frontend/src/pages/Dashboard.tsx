@@ -11,7 +11,10 @@ type Page = "submit" | "submitted";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const supplierId = localStorage.getItem("supplier_name");
+  const supplierId = localStorage.getItem("supplier_id");
+  const supplierName = localStorage.getItem("supplier_name");
+  const accessToken = localStorage.getItem("access_token"); // JWT
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activePage, setActivePage] = useState<Page>("submit");
 
@@ -43,12 +46,12 @@ export default function Dashboard() {
           sidebarOpen={sidebarOpen}
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           activePage={activePage}
-          supplierId={supplierId}
+          supplierName={supplierName}
           onLogout={handleLogout} 
         />
 
         <section className={styles.content}>
-          {activePage === "submit" && <SubmitInvoice />}
+          {activePage === "submit" && (<SubmitInvoice supplierId={supplierId} accessToken={accessToken} /> )}
           {activePage === "submitted" && <SubmittedInvoices />}
         </section>
       </main>
