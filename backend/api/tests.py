@@ -1,44 +1,45 @@
-from django.test import TestCase
-from rest_framework.test import APIClient
+# api/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework import status
 from api.models import Pin
+from django.contrib.auth.hashers import check_password
+import jwt
+from django.conf import settings
+from datetime import datetime, timedelta, timezone
 
-class VerifyPinViewTests(TestCase):
-    def setUp(self):
-        self.client = APIClient()
+class VerifyPinView(APIView):
+    def post(self, request):
+        pin_code = request.data.get("pin_code")
 
-        # Create a test PIN
-        self.pin = Pin.objects.create(
-            supplier_id="SUP123",
-            is_locked=False
-        )
-        self.pin.set_pin("1234")
-        self.pin.save()
+        if not pin_code:
+            return Response(
+                {"error": "pin_code is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Create a locked PIN
-        self.locked_pin = Pin.objects.create(
-            supplier_id="SUP999",
-            is_locked=True
-        )
-        self.locked_pin.set_pin("9999")
-        self.locked_pin.save()
+        try:
+            pin = Pin.objects.get()
+        except Pin.DoesNotExist:
+            pin = None
 
-    def test_valid_pin(self):
-        response = self.client.post("/api/verify-pin/", {"pin_code": "1234"}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("access_token", response.data)
+        # Check all pins
+        for p in Pin.objects.all():
+            if p.check_pin(pin_code):
+                if p.is_locked:
+                    return Response(
+                        {"error": "Account is locked"},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
 
-    def test_invalid_pin(self):
-        response = self.client.post("/api/verify-pin/", {"pin_code": "0000"}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data["error"], "Invalid PIN")
+                # Generate JWT
+                payload = {
+                    "supplier_id": str(p.supplier.supplier_id),
+                    "supplier_name": p.supplier.supplier_name,
+                    "exp": datetime.now(timezone.utc) + timedelta(hours=1)
+                }
+                token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
-    def test_locked_pin(self):
-        response = self.client.post("/api/verify-pin/", {"pin_code": "9999"}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.data["error"], "Account is locked")
+                return Response({"access_token": token}, status=status.HTTP_200_OK)
 
-    def test_missing_pin(self):
-        response = self.client.post("/api/verify-pin/", {}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["error"], "pin_code is required")
+        return Response({"error": "Invalid PIN"}, status=status.HTTP_401_UNAUTHORIZED)
