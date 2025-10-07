@@ -145,9 +145,22 @@ export default function SubmitInvoice({
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    } catch (error) {
+    } catch (error:any) {
       console.error("Upload error:", error);
-      toast.error("Failed to submit invoice");
+      try {
+        const parsed = typeof error.message === "string" ? JSON.parse(error.message): {};
+
+        if (parsed.invoice_number) {
+            toast.error(parsed.invoice_number[0]);
+        } else if (parsed.detail) {
+            toast.error(parsed.detail);
+        } else {
+            toast.error("Failed to submit invoice");
+        }
+      } catch (e){
+        toast.error("Failed to submit invoice");
+      }
+      
     } finally {
       setIsSubmitting(false);
     };
