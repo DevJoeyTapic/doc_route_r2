@@ -42,7 +42,8 @@ export default function Dashboard() {
       const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
       const decoded = JSON.parse(atob(base64));
       return decoded.exp ? decoded.exp * 1000 : null; // convert to ms
-    } catch {
+    } catch (err) {
+      console.error("Failed to decode JWT:", err);
       return null;
     }
   };
@@ -52,12 +53,26 @@ export default function Dashboard() {
     if (!accessToken) return;
 
     const expTime = getTokenExpiration(accessToken);
-    if (!expTime) return;
+    if (!expTime) {
+      console.warn("⚠️ No exp field in JWT or failed to decode.");
+      return;
+    };
+      
 
     const currentTime = Date.now();
     const timeLeft = expTime - currentTime;
 
+    console.group("🔐 JWT Session Debug");
+    console.log("Decoded expTime (ms):", expTime);
+    console.log("Readable Expiration:", new Date(expTime).toLocaleString());
+    console.log("Current Time (ms):", currentTime);
+    console.log("Readable Now:", new Date(currentTime).toLocaleString());
+    console.log("Time Left (ms):", timeLeft);
+    console.log("Time Left (minutes):", Math.floor(timeLeft / 60000));
+    console.groupEnd();
+
     if (timeLeft <= 0) {
+      console.warn("⚠️ Token already expired. Logging out.");
       handleLogout();
       return;
     }
@@ -65,10 +80,12 @@ export default function Dashboard() {
     // Warn 1 minute before logout
     const warnTimer = setTimeout(() => {
       toast.warning("Your session will expire in 1 minute.", { autoClose: 60000 });
+      console.info("⚠️ 1-minute warning toast shown.");
     }, Math.max(timeLeft - 60000, 0));
 
     // Auto logout at expiration
     const logoutTimer = setTimeout(() => {
+      console.warn("⏰ Token expired. Logging out automatically.");
       handleLogout();
     }, timeLeft);
 
