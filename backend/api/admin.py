@@ -1,12 +1,16 @@
 from django.contrib import admin
-from .models import Supplier, Invoice, Pin
+from .models import Supplier, Invoice, Pin, Vessel
 from django.utils.html import format_html
 
 class InvoiceInline(admin.TabularInline): 
     model = Invoice
     extra = 1  # number of empty invoice rows to show
-    fields = ("invoice_number", "submitted_date", "amount_due", "description")
+    fields = ("invoice_number", "vessel","submitted_date", "amount_due", "description")
     readonly_fields = ("date_created", "date_modified")
+
+    @admin.display(description="Vessel")
+    def vessel_name(self, obj):
+        return obj.vessel.vessel_name if obj.vessel else "-"
 
 @admin.register(Supplier)
 class SupplierAdmin(admin.ModelAdmin):
@@ -35,11 +39,17 @@ class PinAdmin(admin.ModelAdmin):
             obj.set_pin(raw_pin)
         super().save_model(request,obj,form,change)
 
+@admin.register(Vessel)
+class VesselAdmin(admin.ModelAdmin):
+    list_display = ("vessel_name", "created_at", "updated_at")
+    search_fields = ("vessel_name",)
+    ordering = ("vessel_name",)
+
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ("invoice_number", "supplier", "amount_due", "submitted_date", "pdf_link")
+    list_display = ("invoice_number", "supplier","vessel", "amount_due", "submitted_date", "pdf_link")
     list_filter = ("supplier", "submitted_date")
-    search_fields = ("invoice_number", "supplier__supplier_name")
+    search_fields = ("invoice_number", "supplier__supplier_name", "vessel__vessel_name")
 
     @admin.display(description="PDF File")
     def pdf_link(self, obj):
