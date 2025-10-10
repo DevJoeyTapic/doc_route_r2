@@ -2,10 +2,12 @@
 import jwt
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
+
 
 from .models import Pin, Invoice, Vessel
 from .serializers import InvoiceUploadSerializer
@@ -126,7 +128,13 @@ class VesselListView(APIView):
     authentication_classes = [JWTAuthentication]  
 
     def get(self, request):
+        search = request.query_params.get("search", "").strip()
         vessels = Vessel.objects.all().order_by("vessel_name")
+        
+        if search:
+            vessels = vessels.filter(Q(vessel_name__icontains=search))
+        
+        vessels = vessels[:20]
         data = [
             {"vessel_id": v.vessel_id, "vessel_name": v.vessel_name}
             for v in vessels

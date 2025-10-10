@@ -36,37 +36,54 @@ export default function SubmitInvoice({
   const suggestionBoxRef = useRef<HTMLDivElement | null>(null);
   const vesselInputRef = useRef<HTMLInputElement | null>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
- // ----------------------------
-  // Fetch vessels as user types
-  // ----------------------------
+  // --------------------------------------------------------
+  //           Fetch vessels as user types                  -
+  // --------------------------------------------------------
   
   const handleVesselInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setVesselName(value);
 
-    if (value.length < 2 || !accessToken) {
-      setVesselSuggestions([]);
-      return;
+    if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
     }
 
-    try {
-      const response = await fetch(
-        `http://localhost:8000/vessels/?search=${encodeURIComponent(value)}`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-      if (!response.ok) throw new Error("Failed to load vessels");
+    debounceTimeout.current = setTimeout(async () => { 
+      if (value.length < 1 || !accessToken) {
+        setVesselSuggestions([]);
+        return;
+      }
 
-      const data = await response.json();
-      setVesselSuggestions(data);
-    } catch (error) {
-      console.error("Error fetching vessels:", error);
-    }
+      try {
+        const response = await fetch(
+          `http://localhost:8000/vessels/?search=${encodeURIComponent(value)}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+        if (!response.ok) throw new Error("Failed to load vessels");
+
+        const data = await response.json();
+        setVesselSuggestions(data);
+      } catch (error) {
+        console.error("Error fetching vessels:", error);
+      }
+    },300);
   };
 
-  // When user clicks a suggestion
+  useEffect(() => {
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, []);
+
+  // ---------------------------------------------------------
+  //             When user clicks a suggestion               -
+  // ---------------------------------------------------------
   const handleSuggestionClick = (name: string) => {
     setVesselName(name);
     setVesselSuggestions([]);
