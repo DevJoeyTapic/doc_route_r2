@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from .models import Pin, Invoice
-from .serializers import SupplierSerializer, InvoiceUploadSerializer
+from .models import Pin, Invoice, Vessel
+from .serializers import InvoiceUploadSerializer
 from .authentication import JWTAuthentication 
 
 
@@ -90,3 +90,45 @@ class InvoiceUploadView(APIView):
                 status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# ---------------------------
+# Check Invoice Existence
+# ---------------------------
+class CheckInvoiceView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+        invoice_number = request.query_params.get("invoice_number")
+
+        if not invoice_number:
+            return Response(
+                {"error": "invoice_number is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        exists = Invoice.objects.filter(invoice_number=invoice_number).exists()
+
+        if exists:
+            return Response(
+                {"exists": True, "message": "Invoice already exists"},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"exists": False, "message": "Invoice number is available"},
+                status=status.HTTP_200_OK
+            )
+        
+# ---------------------------
+# Vessel List Endpoint
+# ---------------------------
+class VesselListView(APIView):
+    authentication_classes = [JWTAuthentication]  
+
+    def get(self, request):
+        vessels = Vessel.objects.all().order_by("vessel_name")
+        data = [
+            {"vessel_id": v.vessel_id, "vessel_name": v.vessel_name}
+            for v in vessels
+        ]
+        return Response(data, status=status.HTTP_200_OK)

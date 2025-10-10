@@ -54,7 +54,7 @@ function PinPage() {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8000/api/verify-pin/", {
+      const response = await axios.post("http://localhost:8000/verify-pin/", {
           pin_code: enteredPin,
       });
       // console.log("✅ API Response:", response.data); // show full JSON in console

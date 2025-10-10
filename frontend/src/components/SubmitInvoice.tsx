@@ -8,21 +8,111 @@ interface SubmitInvoiceProps {
   accessToken: string | null;
 }
 
+interface Vessel {
+  vessel_id: string;
+  vessel_name: string;
+}
+
 export default function SubmitInvoice({
   supplierId,
   accessToken
 }:SubmitInvoiceProps
 ) {
   const [invoiceDate, setInvoiceDate] = useState<string>("");
+  const [vesselName, setVesselName] = useState<string>("");
+  const [vesselSuggestions, setVesselSuggestions] = useState<Vessel[]>([]);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState<string>(""); // formatted for UI
   const [rawAmount, setRawAmount] = useState<number>(0); // numeric for saving
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [invoiceExists, setInvoiceExists] = useState<boolean | null>(null);
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+ 
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const suggestionBoxRef = useRef<HTMLDivElement | null>(null);
+  const vesselInputRef = useRef<HTMLInputElement | null>(null);
+  const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+ // ----------------------------
+  // Fetch vessels as user types
+  // ----------------------------
   
+  const handleVesselInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setVesselName(value);
+
+    if (value.length < 2 || !accessToken) {
+      setVesselSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/vessels/?search=${encodeURIComponent(value)}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to load vessels");
+
+      const data = await response.json();
+      setVesselSuggestions(data);
+    } catch (error) {
+      console.error("Error fetching vessels:", error);
+    }
+  };
+
+  // When user clicks a suggestion
+  const handleSuggestionClick = (name: string) => {
+    setVesselName(name);
+    setVesselSuggestions([]);
+  };
+
+  // Hide suggestions on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        suggestionBoxRef.current &&
+        !suggestionBoxRef.current.contains(e.target as Node) &&
+        vesselInputRef.current &&
+        !vesselInputRef.current.contains(e.target as Node)
+      ) {
+        setVesselSuggestions([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Sync width of suggestion box with input
+  useEffect(() => {
+    const updateWidth = () => {
+      if (vesselInputRef.current && suggestionBoxRef.current) {
+        suggestionBoxRef.current.style.width = `${vesselInputRef.current.offsetWidth}px`;
+      }
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, [vesselSuggestions.length]);
+  
+  // ----------------------------
+  // Auto scroll highlighted suggestion
+  // ----------------------------
+  useEffect(() => {
+    if (highlightedIndex >= 0 && suggestionRefs.current[highlightedIndex]) {
+      suggestionRefs.current[highlightedIndex]?.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }
+  }, [highlightedIndex]);
+
+
   // Autofill date with today’s date
   useEffect(() => {
     const today = new Date();
@@ -69,9 +159,46 @@ export default function SubmitInvoice({
 
   };
 
+  // ---------- File ----------
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setAttachment(file);
+  };
+
+  // ---------- Check Invoice Number ----------
+  const handleInvoiceBlur = async () => {
+    if (!invoiceNumber.trim() || !accessToken) return;
+
+    setIsChecking(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/invoices/check-invoice/?invoice_number=${encodeURIComponent(
+          invoiceNumber
+        )}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Server error while checking invoice");
+      }
+
+      const data = await response.json();
+      if (data.exists) {
+        setInvoiceExists(true);
+        toast.warning("Invoice number already exists!");
+      }else {
+        setInvoiceExists(false);
+      }
+    } catch (err) {
+      toast.error("Failed to check invoice number");
+      console.error(err);
+    } finally {
+      setIsChecking(false);
+    }
   };
 
   // Validation using toast
@@ -80,6 +207,10 @@ export default function SubmitInvoice({
 
     if (!invoiceDate) {
       toast.error("Date is required");
+      isValid = false;
+    }
+    if (!vesselName.trim()) {
+      toast.error("Vessel name is required");
       isValid = false;
     }
     if (!invoiceNumber.trim()) {
@@ -166,7 +297,15 @@ export default function SubmitInvoice({
     };
   };  
 
-
+  // -------------------- Styles for Validation --------------------
+  const getInvoiceInputStyle = () => {
+    if (invoiceExists === true)
+      return { border: "2px solid red", backgroundColor: "#ffe6e6" };
+    return {};
+  };
+  // ---------------------------------------------
+  //                     JSX                     -
+  // ---------------------------------------------
   return (
     <>
       <form className={styles.invoiceForm} onSubmit={handleSubmit} noValidate>
@@ -179,6 +318,86 @@ export default function SubmitInvoice({
             onChange={(e) => setInvoiceDate(e.target.value)}
           />
         </div>
+
+         <div className={styles.formGroup} style={{ position: "relative" }} >
+          <label>Vessel Name</label>
+          <input
+            ref={vesselInputRef}
+            type="text"
+            placeholder="Start typing vessel name..."
+            value={vesselName}
+            onChange={handleVesselInput}
+            onKeyDown={(e) => {
+                if (vesselSuggestions.length === 0) return;
+
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setHighlightedIndex((prev) =>
+                    prev < vesselSuggestions.length - 1 ? prev + 1 : 0
+                  );
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setHighlightedIndex((prev) =>
+                    prev > 0 ? prev - 1 : vesselSuggestions.length - 1
+                  );
+                } else if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (highlightedIndex >= 0) {
+                    const selected = vesselSuggestions[highlightedIndex];
+                    handleSuggestionClick(selected.vessel_name);
+                    setHighlightedIndex(-1);
+                  }
+                } else if (e.key === "Escape") {
+                  setHighlightedIndex(-1);
+                  setVesselSuggestions([]);
+                }
+              }}
+          />
+          {vesselSuggestions.length > 0 && (
+            <div
+              ref={suggestionBoxRef}
+              className={styles.suggestionBox}
+              style={{
+                position: "absolute",
+                top: `${(vesselInputRef.current?.offsetHeight || 0) + 22}px`,
+                left: 0,
+                background: "white",
+                border: "1px solid #ccc",
+                width: vesselInputRef.current?.offsetWidth || "100%",
+                zIndex: 10,
+                maxHeight: "150px",
+                overflowY: "auto",
+                borderRadius: "6px",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                fontSize: "0.9rem", 
+              }}
+            >
+              {vesselSuggestions.map((v,index) => (
+                <div
+                  key={v.vessel_id}
+                  ref={(el) => {suggestionRefs.current[index] = el}}
+                  onClick={() => handleSuggestionClick(v.vessel_name)}
+                  style={{
+                    padding: "8px 10px",
+                    cursor: "pointer",
+                    fontSize: "0.95rem",
+                    backgroundColor:
+                      index === highlightedIndex ? "#e8f0fe" : "white", // highlight active item
+                  }}
+                  onMouseDown={(e) => e.preventDefault()} // prevent input blur
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLDivElement).style.backgroundColor = "#f0f0f0";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLDivElement).style.backgroundColor = "white";
+                  }}
+                >
+                  {v.vessel_name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <div className={styles.formGroup}>
           <label>Invoice Number</label>
           <input 
@@ -186,7 +405,10 @@ export default function SubmitInvoice({
             placeholder="Enter invoice number" 
             value={invoiceNumber}
             onChange={(e) => setInvoiceNumber(e.target.value)}
+            onBlur={handleInvoiceBlur}
+            style={getInvoiceInputStyle()}
           />
+          {isChecking && <small>Checking...</small>}
         </div>
         <div className={styles.formGroup}>
           <label>Amount</label>
