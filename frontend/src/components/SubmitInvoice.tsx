@@ -21,6 +21,7 @@ export default function SubmitInvoice({
   const [invoiceDate, setInvoiceDate] = useState<string>("");
   const [vesselName, setVesselName] = useState<string>("");
   const [vesselSuggestions, setVesselSuggestions] = useState<Vessel[]>([]);
+  const [selectedVesselId, setSelectedVesselId] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState<string>(""); // formatted for UI
@@ -84,9 +85,10 @@ export default function SubmitInvoice({
   // ---------------------------------------------------------
   //             When user clicks a suggestion               -
   // ---------------------------------------------------------
-  const handleSuggestionClick = (name: string) => {
+  const handleSuggestionClick = (name: string, id: string) => {
     setVesselName(name);
     setVesselSuggestions([]);
+    setSelectedVesselId(id);
   };
 
   // Hide suggestions on outside click
@@ -218,7 +220,9 @@ export default function SubmitInvoice({
     }
   };
 
-  // Validation using toast
+  // ---------------------------
+  // - Validation using toast  -
+  // ---------------------------
   const validate = () => {
     let isValid = true;
 
@@ -229,6 +233,10 @@ export default function SubmitInvoice({
     if (!vesselName.trim()) {
       toast.error("Vessel name is required");
       isValid = false;
+    }
+    if (!selectedVesselId) {
+      toast.error("Please select a valid vessel from suggestions");
+      return false;
     }
     if (!invoiceNumber.trim()) {
       toast.error("Invoice number is required");
@@ -250,10 +258,12 @@ export default function SubmitInvoice({
       toast.error("Only PDF files are allowed");
       isValid = false;
     }
-
     return isValid;
   };
 
+  //  ---------------------------
+  //  -        Submit Form      -
+  //  ---------------------------        
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -264,6 +274,7 @@ export default function SubmitInvoice({
       const formData = new FormData();
       formData.append("supplier_id", supplierId ?? "");
       formData.append("submitted_date", invoiceDate);
+      formData.append("vessel", selectedVesselId);
       formData.append("invoice_number", invoiceNumber);
       formData.append("description", description);
       formData.append("amount_due", rawAmount.toString());
@@ -361,7 +372,7 @@ export default function SubmitInvoice({
                   e.preventDefault();
                   if (highlightedIndex >= 0) {
                     const selected = vesselSuggestions[highlightedIndex];
-                    handleSuggestionClick(selected.vessel_name);
+                    handleSuggestionClick(selected.vessel_name,selected.vessel_id);
                     setHighlightedIndex(-1);
                   }
                 } else if (e.key === "Escape") {
@@ -393,7 +404,7 @@ export default function SubmitInvoice({
                 <div
                   key={v.vessel_id}
                   ref={(el) => {suggestionRefs.current[index] = el}}
-                  onClick={() => handleSuggestionClick(v.vessel_name)}
+                  onClick={() => handleSuggestionClick(v.vessel_name,v.vessel_id)}
                   style={{
                     padding: "8px 10px",
                     cursor: "pointer",

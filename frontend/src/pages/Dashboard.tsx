@@ -22,21 +22,31 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activePage, setActivePage] = useState<Page>("submit");
   
-  
+ 
+  // ------------------------------
+  //    Secure Logout Handler     -
+  // ------------------------------
   const handleLogout = () => {
     localStorage.clear();
-    toast.dismiss();
     navigate("/");
-    toast.info("Session expired. You have been logged out.", { autoClose: 3000 });
+
+    setTimeout(()=>{
+        toast.info("Session expired. You have been logged out.", { autoClose: 3000 });
+    },200);
   };
 
+  // ------------------------------
+  //      Menu Click Handler      -   
+  // ------------------------------
   const handleMenuClick = (page: Page) => {
     setActivePage(page);
     setSidebarOpen(false);
   };
 
- // Decode JWT to get expiration time
-  const getTokenExpiration = (token: string): number | null => {
+ // ---------------------------------------- 
+ //     Decode JWT to get expiration time  -
+ // ----------------------------------------
+const getTokenExpiration = (token: string): number | null => {
     try {
       const base64Url = token.split(".")[1];
       const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -48,8 +58,19 @@ export default function Dashboard() {
     }
   };
 
-  // Auto logout timer based on JWT exp
-  useEffect(() => {
+// ----------------------------------
+//    Redirect if no valid token    - 
+// ----------------------------------
+useEffect(() => {
+    if (!accessToken) {
+      navigate("/");
+    }
+  }, [accessToken, navigate]);
+
+// --------------------------------------
+//   Auto logout timer based on JWT exp -
+// --------------------------------------
+useEffect(() => {
     if (!accessToken) return;
 
     const expTime = getTokenExpiration(accessToken);
@@ -58,16 +79,10 @@ export default function Dashboard() {
       return;
     };
       
-
     const currentTime = Date.now();
     const timeLeft = expTime - currentTime;
 
     console.group("🔐 JWT Session Debug");
-    console.log("Decoded expTime (ms):", expTime);
-    console.log("Readable Expiration:", new Date(expTime).toLocaleString());
-    console.log("Current Time (ms):", currentTime);
-    console.log("Readable Now:", new Date(currentTime).toLocaleString());
-    console.log("Time Left (ms):", timeLeft);
     console.log("Time Left (minutes):", Math.floor(timeLeft / 60000));
     console.groupEnd();
 
@@ -89,12 +104,18 @@ export default function Dashboard() {
       handleLogout();
     }, timeLeft);
 
+    // ------------------------------------------
+    //  Cleanup timers to prevent memory leaks  -
+    // ------------------------------------------
     return () => {
       clearTimeout(warnTimer);
       clearTimeout(logoutTimer);
     };
-  }, [accessToken]);
+  }, [accessToken, navigate]);
 
+  // ------------------------------
+  //      Render Component
+  // ------------------------------
   return (
     <div className={styles.dashboard}>
       {/* Toast Notification Container */}

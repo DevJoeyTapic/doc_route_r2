@@ -41,7 +41,7 @@ class PinAdmin(admin.ModelAdmin):
 
 @admin.register(Vessel)
 class VesselAdmin(admin.ModelAdmin):
-    list_display = ("vessel_name", "created_at", "updated_at")
+    list_display = ("vessel_name", "vessel_id","created_at", "updated_at")
     search_fields = ("vessel_name",)
     ordering = ("vessel_name",)
 
