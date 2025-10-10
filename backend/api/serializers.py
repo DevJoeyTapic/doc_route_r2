@@ -33,7 +33,6 @@ class PinSerializer(serializers.ModelSerializer):
 class InvoiceUploadSerializer(serializers.ModelSerializer):
     supplier = serializers.PrimaryKeyRelatedField(queryset=Supplier.objects.all())
     vessel = serializers.PrimaryKeyRelatedField(queryset=Vessel.objects.all(), write_only=True)
-    # vessel_name = serializers.CharField(source='vessel.vessel_name', read_only=True)
     class Meta:
         model = Invoice
         fields = [
@@ -50,3 +49,24 @@ class InvoiceUploadSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["invoice_id", "date_created", "date_modified"]
     
+# -----------------------------
+# Invoice List per Supplier
+# -----------------------------
+class InvoiceListSerializer(serializers.ModelSerializer):
+    vessel_name = serializers.CharField(source='vessel.vessel_name', read_only=True)
+    
+    class Meta:
+        model = Invoice
+        fields = [
+            "invoice_id",
+            "invoice_number",
+            "submitted_date",
+            "amount_due",
+            "description",
+            "pdf_file",
+            "vessel_name",
+            "date_created",
+            "date_modified",
+        ]
+
+
