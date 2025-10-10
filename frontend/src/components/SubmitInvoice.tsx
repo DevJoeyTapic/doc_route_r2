@@ -119,9 +119,9 @@ export default function SubmitInvoice({
     return () => window.removeEventListener("resize", updateWidth);
   }, [vesselSuggestions.length]);
   
-  // ----------------------------
-  // Auto scroll highlighted suggestion
-  // ----------------------------
+  // ----------------------------------------
+  //   Auto scroll highlighted suggestion   -
+  // ----------------------------------------
   useEffect(() => {
     if (highlightedIndex >= 0 && suggestionRefs.current[highlightedIndex]) {
       suggestionRefs.current[highlightedIndex]?.scrollIntoView({
@@ -131,11 +131,21 @@ export default function SubmitInvoice({
     }
   }, [highlightedIndex]);
 
-
-  // Autofill date with today’s date
+  // -------------------------------------
+  // -  Autofill date with today’s date  -
+  // ------------------------------------- 
   useEffect(() => {
-    const today = new Date();
-    const formatted = today.toISOString().split("T")[0]; // YYYY-MM-DD
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, "0");
+
+    const year = now.getFullYear();
+    const month = pad(now.getMonth() + 1); // months are 0-based
+    const day = pad(now.getDate());
+    const hours = pad(now.getHours());
+    const minutes = pad(now.getMinutes());
+
+    // Format for datetime-local input: "YYYY-MM-DDTHH:MM"
+    const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
     setInvoiceDate(formatted);
   }, []);
 
@@ -294,9 +304,23 @@ export default function SubmitInvoice({
       }
 
       toast.success("Invoice submitted successfully!");
-      // Reset form
-      setInvoiceDate(new Date().toISOString().split("T")[0]);
+      // ---------------------
+      // -    Reset form     -
+      // ---------------------
+
+      // Helper to pad single digits
+      const pad = (n: number) => n.toString().padStart(2, "0");
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = pad(now.getMonth() + 1);
+      const day = pad(now.getDate());
+      const hours = pad(now.getHours());
+      const minutes = pad(now.getMinutes());
+
+      setInvoiceDate(`${year}-${month}-${day}T${hours}:${minutes}`);
       setInvoiceNumber("");
+      setVesselName("");
       setDescription("");
       setAmount("");
       setRawAmount(0);
@@ -341,7 +365,7 @@ export default function SubmitInvoice({
           <label>Date</label>
           <input 
             id="invoiceDate"
-            type="date"
+            type="datetime-local"
             value={invoiceDate}
             onChange={(e) => setInvoiceDate(e.target.value)}
           />
