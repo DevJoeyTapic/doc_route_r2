@@ -140,3 +140,17 @@ class VesselListView(APIView):
             for v in vessels
         ]
         return Response(data, status=status.HTTP_200_OK)
+    
+# ---------------------------
+# List all invoices by supplier
+# ---------------------------
+class SupplierInvoiceListView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+        supplier = request.user  # ✅ JWTAuthentication sets this to the Supplier instance
+        invoices = Invoice.objects.filter(supplier=supplier).order_by('-date_created')
+
+        from .serializers import InvoiceListSerializer
+        serializer = InvoiceListSerializer(invoices, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
