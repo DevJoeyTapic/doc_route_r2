@@ -1,6 +1,7 @@
 
 import jwt
 from datetime import datetime, timedelta, timezone
+from django.contrib.auth import authenticate
 from django.conf import settings
 from django.db.models import Q
 from rest_framework.views import APIView
@@ -9,8 +10,9 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 
 
+
 from .models import Pin, Invoice, Vessel
-from .serializers import InvoiceUploadSerializer
+from .serializers import InvoiceUploadSerializer,InvoiceListSerializer
 from .authentication import JWTAuthentication 
 
 
@@ -141,9 +143,9 @@ class VesselListView(APIView):
         ]
         return Response(data, status=status.HTTP_200_OK)
     
-# ---------------------------
-# List all invoices by supplier
-# ---------------------------
+# ----------------------------------
+# - List all invoices by supplier  -
+# ----------------------------------
 class SupplierInvoiceListView(APIView):
     authentication_classes = [JWTAuthentication]
 
@@ -151,6 +153,61 @@ class SupplierInvoiceListView(APIView):
         supplier = request.user  # ✅ JWTAuthentication sets this to the Supplier instance
         invoices = Invoice.objects.filter(supplier=supplier).order_by('-date_created')
 
-        from .serializers import InvoiceListSerializer
         serializer = InvoiceListSerializer(invoices, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+# --------------------------------
+# -  Django user authentication  -
+# --------------------------------
+class UserLoginView(APIView):
+    """
+    Independent endpoint for authenticating Django users
+    that are NOT staff and NOT using supplier PINs.
+    """
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        # Basic input validation
+        if not username or not password:
+            return Response(
+                {"error": "Username and password are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Authenticate using Django's built-in system
+        user = authenticate(username=username, password=password)
+
+        if not user:
+            return Response(
+                {"error": "Invalid username or password."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Reject staff users
+        if user.is_staff:
+            return Response(
+                {"error": "Staff users are not allowed to log in here."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Generate custom JWT
+        payload = {
+            "user_id": user.pk,
+            "username": user.username,
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+            "iat": datetime.now(timezone.utc),
+        }
+
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+
+        return Response({
+            "message": "Login successful.",
+            "user": {
+                "id": user.pk,
+                "username": user.username,
+                "email": user.email,
+            },
+            "access_token": token
+        }, status=status.HTTP_200_OK)
+    
