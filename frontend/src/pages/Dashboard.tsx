@@ -143,7 +143,7 @@ useEffect(() => {
 
         <section className={styles.content}>
           {activePage === "submit" && (<SubmitInvoice supplierId={supplierId} accessToken={accessToken} /> )}
-          {activePage === "submitted" && <SubmittedInvoices />}
+          {activePage === "submitted" && <SubmittedInvoices supplierId={supplierId} accessToken={accessToken} />}
         </section>
       </main>
     </div>
