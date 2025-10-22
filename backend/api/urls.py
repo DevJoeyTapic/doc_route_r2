@@ -5,7 +5,9 @@ from .views import (
     CheckInvoiceView, 
     VesselListView,
     SupplierInvoiceListView,
-    UserLoginView
+    UserLoginView,
+    SupplierSearchView,
+    AllSupplierInvoicesView,
 )
 
 urlpatterns = [
@@ -14,6 +16,8 @@ urlpatterns = [
     path("invoices/check-invoice/", CheckInvoiceView.as_view(), name='check-invoice'),
     path("invoices/", SupplierInvoiceListView.as_view(), name='supplier-invoices'),
     path("vessels/", VesselListView.as_view(), name='vessel-list'),
+     path("supplier/", SupplierSearchView.as_view(), name="supplier-search"),
 
     path('user/login/', UserLoginView.as_view()),
+    path("user/invoices/", AllSupplierInvoicesView.as_view(), name="all_supplier_invoices"),
 ]

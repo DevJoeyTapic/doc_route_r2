@@ -8,12 +8,18 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
-
-
-
-from .models import Pin, Invoice, Vessel
-from .serializers import InvoiceUploadSerializer,InvoiceListSerializer
-from .authentication import JWTAuthentication 
+from .models import (
+    Pin, 
+    Invoice, 
+    Vessel, 
+    Supplier
+)
+from .serializers import ( 
+    InvoiceUploadSerializer,
+    InvoiceListSerializer,
+    SupplierSerializer, 
+)
+from .authentication import JWTAuthentication,UserJWTAuthentication 
 
 
 # ---------------------------
@@ -142,7 +148,27 @@ class VesselListView(APIView):
             for v in vessels
         ]
         return Response(data, status=status.HTTP_200_OK)
-    
+
+# ---------------------------
+# View Supplier
+# ---------------------------
+
+class SupplierSearchView(APIView):
+    authentication_classes = [UserJWTAuthentication]
+
+    def get(self, request):
+        search = request.query_params.get("search", "").strip()
+
+        if not search:
+            return Response([], status=status.HTTP_200_OK)
+
+        suppliers = Supplier.objects.filter(supplier_name__icontains=search)[:20]
+        data = [
+            {"supplier_id": s.supplier_id, "supplier_name": s.supplier_name}
+            for s in suppliers
+        ]
+        return Response(data, status=status.HTTP_200_OK)
+   
 # ----------------------------------
 # - List all invoices by supplier  -
 # ----------------------------------
@@ -155,6 +181,21 @@ class SupplierInvoiceListView(APIView):
 
         serializer = InvoiceListSerializer(invoices, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+# ----------------------------------
+# -     List all invoices          -
+# ----------------------------------
+
+class AllSupplierInvoicesView(APIView):
+    authentication_classes = [UserJWTAuthentication]
+
+    def get(self,request):
+        # Fetch all invoices with related supplier and vessel for efficiency
+        invoices = Invoice.objects.select_related("supplier", "vessel").order_by("-date_created")
+
+        serializer = InvoiceListSerializer(invoices, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 # --------------------------------
 # -  Django user authentication  -

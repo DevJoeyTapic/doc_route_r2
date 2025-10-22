@@ -10,7 +10,6 @@ class SupplierSerializer(serializers.ModelSerializer):
         fields = [
             'supplier_id', 
             'supplier_name', 
-            'date_created'
         ]
 
 # --------------------------

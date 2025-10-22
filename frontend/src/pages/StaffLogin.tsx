@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast} from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -27,20 +27,21 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
+      console.log (data);
       if (!response.ok) throw new Error(data.error || "Login failed");
 
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("refresh_token", data.refresh_token);
-      // localStorage.setItem("role", data.role);
+     
 
       toast.success("Login successful!");
 
       setTimeout(() => navigate("/dashboard"), 1000);
 
     } catch (err: any) {
-      toast.error("Login failed");
+        toast.error(err.message || "Login failed");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -81,6 +82,15 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+        {/* Toast container */}
+          <ToastContainer 
+              position="top-right" 
+              autoClose={2000} 
+              hideProgressBar={false}
+              newestOnTop={true}
+              closeOnClick 
+              pauseOnFocusLoss={false}
+          />
       </div>
     </div>
   );

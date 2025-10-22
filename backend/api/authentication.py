@@ -62,3 +62,4 @@ class UserJWTAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed("Staff users are not allowed here")
 
         return (user, None)
+
