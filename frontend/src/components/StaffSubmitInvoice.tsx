@@ -6,13 +6,17 @@ interface Props {
   accessToken: string | null;
 }
 
-export default function StaffSubmitInvoice({ accessToken }: Props) {
-  const [supplierName, setSupplierName] = useState("");
-  const [vesselName, setVesselName] = useState("");
-  const [invoiceNumber, setInvoiceNumber] = useState("");
+export default function StaffSubmitInvoice({ 
+  accessToken 
+}: Props
+) {
   const [invoiceDate, setInvoiceDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  const [supplierName, setSupplierName] = useState("");
+  const [vesselName, setVesselName] = useState("");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  
   const [amount, setAmount] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -113,7 +117,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
     <div className={styles.container}>
       <h2 className={styles.title}>Submit Invoice (Staff)</h2>
 
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <form className={styles.invoiceForm} onSubmit={handleSubmit} noValidate>
         {/* Supplier name input */}
         <div className={styles.inputGroup}>
           <label>Supplier Name</label>
