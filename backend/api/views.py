@@ -190,8 +190,16 @@ class AllSupplierInvoicesView(APIView):
     authentication_classes = [UserJWTAuthentication]
 
     def get(self,request):
-        # Fetch all invoices with related supplier and vessel for efficiency
+        
+        search = request.query_params.get("search", "").strip()
         invoices = Invoice.objects.select_related("supplier", "vessel").order_by("-date_created")
+
+        if search:
+            invoices = invoices.filter(
+                Q(supplier__supplier_name__icontains=search)
+                | Q(vessel__vessel_name__icontains=search)
+                | Q(invoice_number__icontains=search)
+            )
 
         serializer = InvoiceListSerializer(invoices, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
