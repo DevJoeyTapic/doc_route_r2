@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import styles from "../styles/Dashboard.module.css";
 
@@ -6,21 +6,138 @@ interface Props {
   accessToken: string | null;
 }
 
+interface Vessel {
+  vessel_id: string;
+  vessel_name: string;
+}
+
 export default function StaffSubmitInvoice({ 
   accessToken 
 }: Props
 ) {
-  const [invoiceDate, setInvoiceDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
   const [supplierName, setSupplierName] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState<string>("");
   const [vesselName, setVesselName] = useState("");
+  const [vesselSuggestions, setVesselSuggestions] = useState<Vessel[]>([]);
+  const [selectedVesselId, setSelectedVesselId] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   
   const [amount, setAmount] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+
+  const suggestionBoxRef = useRef<HTMLDivElement | null>(null);
+  const vesselInputRef = useRef<HTMLInputElement | null>(null);
+  const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+
+  // --------------------------------------------------------
+  //           Fetch vessels as user types                  -
+  // --------------------------------------------------------
+  
+  const handleVesselInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setVesselName(value);
+
+    if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+    }
+
+    debounceTimeout.current = setTimeout(async () => { 
+      if (value.length < 1 || !accessToken) {
+        setVesselSuggestions([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `http://localhost:8000/vessels/?search=${encodeURIComponent(value)}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+        if (!response.ok) throw new Error("Failed to load vessels");
+
+        const data = await response.json();
+        setVesselSuggestions(data);
+      } catch (error) {
+        console.error("Error fetching vessels:", error);
+      }
+    },300);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, []);
+
+  // ---------------------------------------------------------
+  //             When user clicks a suggestion               -
+  // ---------------------------------------------------------
+  const handleSuggestionClick = (name: string, id: string) => {
+    setVesselName(name);
+    setVesselSuggestions([]);
+    setSelectedVesselId(id);
+  };
+
+  // Hide suggestions on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        suggestionBoxRef.current &&
+        !suggestionBoxRef.current.contains(e.target as Node) &&
+        vesselInputRef.current &&
+        !vesselInputRef.current.contains(e.target as Node)
+      ) {
+        setVesselSuggestions([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Sync width of suggestion box with input
+  useEffect(() => {
+    const updateWidth = () => {
+      if (vesselInputRef.current && suggestionBoxRef.current) {
+        suggestionBoxRef.current.style.width = `${vesselInputRef.current.offsetWidth}px`;
+      }
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, [vesselSuggestions.length]);
+  
+  // ----------------------------------------
+  //   Auto scroll highlighted suggestion   -
+  // ----------------------------------------
+  useEffect(() => {
+    if (highlightedIndex >= 0 && suggestionRefs.current[highlightedIndex]) {
+      suggestionRefs.current[highlightedIndex]?.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }
+  }, [highlightedIndex]);
+
+// -------------------------------------
+  // -  Autofill date with today’s date  -
+  // ------------------------------------- 
+  useEffect(() => {
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, "0");
+
+    const year = now.getFullYear();
+    const month = pad(now.getMonth() + 1); // months are 0-based
+    const day = pad(now.getDate());
+    const hours = pad(now.getHours());
+    const minutes = pad(now.getMinutes());
+
 
   // ---------------------------
   // Fetch supplier suggestions
@@ -114,10 +231,19 @@ export default function StaffSubmitInvoice({
   };
 
   return (
-    <div className={styles.container}>
-      <h2 className={styles.title}>Submit Invoice (Staff)</h2>
+    <div>
 
       <form className={styles.invoiceForm} onSubmit={handleSubmit} noValidate>
+         <div className={styles.inputGroup}>
+          <label>Invoice Date</label>
+          <input
+            id="invoiceDate"
+            type="datetime-local"
+            value={invoiceDate}
+            onChange={(e) => setInvoiceDate(e.target.value)}
+          />
+        </div>
+
         {/* Supplier name input */}
         <div className={styles.inputGroup}>
           <label>Supplier Name</label>
@@ -161,15 +287,7 @@ export default function StaffSubmitInvoice({
           />
         </div>
 
-        <div className={styles.inputGroup}>
-          <label>Invoice Date</label>
-          <input
-            type="date"
-            value={invoiceDate}
-            onChange={(e) => setInvoiceDate(e.target.value)}
-            required
-          />
-        </div>
+       
 
         <div className={styles.inputGroup}>
           <label>Amount</label>

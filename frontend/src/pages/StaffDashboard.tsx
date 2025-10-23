@@ -3,22 +3,22 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import Sidebar from "../components/Sidebar";
-import Topbar from "../components/Topbar";
-import StaffSubmitInvoice from "../components/StaffSubmitInvoice";
-// import ViewSubmittedInvoices from "../components/ViewSubmittedInvoices";
-import styles from "../styles/Dashboard.module.css";
+import StaffSidebar from "../staff_components/StaffSidebar";
+import StaffTopbar from "../staff_components/StaffTopbar";
+import StaffSubmitInvoice from "../staff_components/StaffSubmitInvoice";
+import ViewSubmittedInvoices from "../staff_components/ViewSubmittedInvoices";
+import styles from "../staff_styles/Dashboard.module.css";
 
-type Page = "suppliers" | "invoices";
+type StaffPage = "invoice" | "invoices";
 
 export default function StaffDashboard() {
   const navigate = useNavigate();
 
-  const staffName = localStorage.getItem("staff_name");
+  // const staffName = localStorage.getItem("staff_name");
   const accessToken = localStorage.getItem("access_token");
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activePage, setActivePage] = useState<Page>("suppliers");
+  const [activePage, setActivePage] = useState<StaffPage>("invoice");
 
   // ------------------------------
   //   Logout Handler
@@ -31,6 +31,15 @@ export default function StaffDashboard() {
       navigate("/staff/login");
     }, 2000);
   };
+
+// ------------------------------
+  //      Menu Click Handler      -   
+  // ------------------------------
+  const handleMenuClick = (page: StaffPage) => {
+    setActivePage(page);
+    setSidebarOpen(false);
+  };
+
 
   // ------------------------------
   //   JWT Decode Helper
@@ -51,37 +60,54 @@ export default function StaffDashboard() {
   // Redirect if not authenticated
   // ---------------------------------
   useEffect(() => {
-    if (!accessToken) navigate("/staff-login");
+    if (!accessToken) navigate("/staff/login");
   }, [accessToken, navigate]);
 
-  // ---------------------------------
-  // Auto logout timer based on JWT
-  // ---------------------------------
-  useEffect(() => {
+  // --------------------------------------
+//   Auto logout timer based on JWT exp -
+// --------------------------------------
+useEffect(() => {
     if (!accessToken) return;
 
     const expTime = getTokenExpiration(accessToken);
-    if (!expTime) return;
+    if (!expTime) {
+      console.warn("⚠️ No exp field in JWT or failed to decode.");
+      return;
+    };
+      
+    const currentTime = Date.now();
+    const timeLeft = expTime - currentTime;
 
-    const timeLeft = expTime - Date.now();
+    console.group("🔐 JWT Session Debug");
+    console.log("Time Left (minutes):", Math.floor(timeLeft / 60000));
+    console.groupEnd();
+
     if (timeLeft <= 0) {
+      console.warn("⚠️ Token already expired. Logging out.");
       handleLogout();
       return;
     }
 
+    // Warn 1 minute before logout
     const warnTimer = setTimeout(() => {
       toast.warning("Your session will expire in 1 minute.", { autoClose: 60000 });
+      console.info("⚠️ 1-minute warning toast shown.");
     }, Math.max(timeLeft - 60000, 0));
 
+    // Auto logout at expiration
     const logoutTimer = setTimeout(() => {
+      console.warn("⏰ Token expired. Logging out automatically.");
       handleLogout();
     }, timeLeft);
 
+    // ------------------------------------------
+    //  Cleanup timers to prevent memory leaks  -
+    // ------------------------------------------
     return () => {
       clearTimeout(warnTimer);
       clearTimeout(logoutTimer);
     };
-  }, [accessToken]);
+  }, [accessToken, navigate]);
 
   // ------------------------------
   //   Render Component
@@ -98,12 +124,9 @@ export default function StaffDashboard() {
         theme="colored"
       />
 
-      <Sidebar
+      <StaffSidebar
         activePage={activePage}
-        onMenuClick={(page: Page) => {
-          setActivePage(page);
-          setSidebarOpen(false);
-        }}
+        onMenuClick={handleMenuClick}
         onLogout={handleLogout}
         sidebarOpen={sidebarOpen}
       />
@@ -113,17 +136,17 @@ export default function StaffDashboard() {
       )}
 
       <main className={styles.main}>
-        <Topbar
+        <StaffTopbar
           sidebarOpen={sidebarOpen}
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           activePage={activePage}
-          staffName={staffName}
+          // staffName={staffName}
           onLogout={handleLogout}
         />
 
         <section className={styles.content}>
-          {activePage === "suppliers" && <StaffSubmitInvoice accessToken={accessToken} />}
-          {/* {activePage === "invoices" && <ViewSubmittedInvoices accessToken={accessToken} />} */}
+          {activePage === "invoice" && <StaffSubmitInvoice accessToken={accessToken} />}
+          {activePage === "invoices" && <ViewSubmittedInvoices accessToken={accessToken} />}
         </section>
       </main>
     </div>

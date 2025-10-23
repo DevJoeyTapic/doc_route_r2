@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import styles from "../styles/Dashboard.module.css";
+import styles from "../staff_styles/Dashboard.module.css";
 
-interface SubmitInvoiceProps {
-  supplierId: string | null;
+interface Props {
   accessToken: string | null;
 }
 
@@ -13,45 +11,39 @@ interface Vessel {
   vessel_name: string;
 }
 
-export default function SubmitInvoice({
-  supplierId,
-  accessToken
-}:SubmitInvoiceProps
-) {
+export default function StaffSubmitInvoice({ accessToken }: Props) {
+  const [supplierName, setSupplierName] = useState("");
   const [invoiceDate, setInvoiceDate] = useState<string>("");
-  const [vesselName, setVesselName] = useState<string>("");
+  const [vesselName, setVesselName] = useState("");
   const [vesselSuggestions, setVesselSuggestions] = useState<Vessel[]>([]);
   const [selectedVesselId, setSelectedVesselId] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [invoiceExists, setInvoiceExists] = useState<boolean | null>(null);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState<string>(""); // formatted for UI
   const [rawAmount, setRawAmount] = useState<number>(0); // numeric for saving
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  const [invoiceExists, setInvoiceExists] = useState<boolean | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
- 
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const suggestionBoxRef = useRef<HTMLDivElement | null>(null);
   const vesselInputRef = useRef<HTMLInputElement | null>(null);
-  const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // --------------------------------------------------------
-  //           Fetch vessels as user types                  -
-  // --------------------------------------------------------
-  
-  const handleVesselInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // -------------------------------------------------------
+  //             Fetch vessels as user types               -        
+  // -------------------------------------------------------
+  const handleVesselInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setVesselName(value);
 
-    if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current);
-    }
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
 
-    debounceTimeout.current = setTimeout(async () => { 
+    debounceTimeout.current = setTimeout(async () => {
       if (value.length < 1 || !accessToken) {
         setVesselSuggestions([]);
         return;
@@ -71,7 +63,7 @@ export default function SubmitInvoice({
       } catch (error) {
         console.error("Error fetching vessels:", error);
       }
-    },300);
+    }, 300);
   };
 
   useEffect(() => {
@@ -83,13 +75,14 @@ export default function SubmitInvoice({
   }, []);
 
   // ---------------------------------------------------------
-  //             When user clicks a suggestion               -
+  //              When user clicks a suggestion              -
   // ---------------------------------------------------------
   const handleSuggestionClick = (name: string, id: string) => {
     setVesselName(name);
     setVesselSuggestions([]);
     setSelectedVesselId(id);
   };
+
   // ---------------------------------------------------------
   //              Hide suggestions on outside click          -
   // ---------------------------------------------------------
@@ -150,86 +143,38 @@ export default function SubmitInvoice({
     setInvoiceDate(formatted);
   }, []);
 
-  // Handle live amount formatting
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  // --------------------------------------------------------
+  // Fetch supplier suggestions
+  // --------------------------------------------------------
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      if (supplierName.trim().length < 2) {
+        setSuggestions([]);
+        return;
+      }
 
-    // Allow only digits and up to one decimal point, 2 decimals max
-    const regex = /^(\d+(\.\d{0,2})?)?$/;
+      try {
+        const res = await fetch(
+          `http://localhost:8000/api/suppliers/?search=${supplierName}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
 
-    if (regex.test(value)) {
-      setAmount(value); // keep typed string as-is
-      setRawAmount(parseFloat(value) || 0);
-    }
-  };
-
-  const handleAmountFocus = () => {
-
-    // Strip formatting back to plain number
-    if (rawAmount) {
-      setAmount(rawAmount.toString());
-    }
-  };
-// On blur, format as PHP currency
-  const handleAmountBlur = () => {
-
-    if (!rawAmount) {
-      setAmount("");
-      return;
-    }
-
-    setAmount(
-        rawAmount.toLocaleString("en-PH", {
-          style: "currency",
-          currency: "PHP",
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
-    );
-
-  };
-
-  // ---------- File ----------
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setAttachment(file);
-  };
-
-  // ---------- Check Invoice Number ----------
-  const handleInvoiceBlur = async () => {
-    if (!invoiceNumber.trim() || !accessToken) return;
-
-    setIsChecking(true);
-    try {
-      const response = await fetch(
-        `http://localhost:8000/invoices/check-invoice/?invoice_number=${encodeURIComponent(
-          invoiceNumber
-        )}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data.map((s: any) => s.supplier_name));
+        } else {
+          setSuggestions([]);
         }
-      );
-
-      if (!response.ok) {
-        throw new Error("Server error while checking invoice");
+      } catch (err) {
+        console.error("Failed to fetch suppliers:", err);
       }
+    };
 
-      const data = await response.json();
-      if (data.exists) {
-        setInvoiceExists(true);
-        toast.warning("Invoice number already exists!");
-      }else {
-        setInvoiceExists(false);
-      }
-    } catch (err) {
-      toast.error("Failed to check invoice number");
-      console.error(err);
-    } finally {
-      setIsChecking(false);
-    }
-  };
+    const timeout = setTimeout(fetchSuppliers, 300);
+    return () => clearTimeout(timeout);
+  }, [supplierName, accessToken]);
 
   // ---------------------------
   // - Validation using toast  -
@@ -283,7 +228,7 @@ export default function SubmitInvoice({
 
     try {
       const formData = new FormData();
-      formData.append("supplier_id", supplierId ?? "");
+      // formData.append("supplier_id", supplierId ?? "");
       formData.append("submitted_date", invoiceDate);
       formData.append("vessel", selectedVesselId);
       formData.append("invoice_number", invoiceNumber);
@@ -350,21 +295,104 @@ export default function SubmitInvoice({
     };
   };  
 
-  // -------------------- Styles for Validation --------------------
+  // --------------------------------------------------
+  // -             Styles for Validation              -
+  // --------------------------------------------------
   const getInvoiceInputStyle = () => {
     if (invoiceExists === true)
       return { border: "2px solid red", backgroundColor: "#ffe6e6" };
     return {};
   };
-  // ---------------------------------------------
-  //                     JSX                     -
-  // ---------------------------------------------
+
+  // -------------------------------------------------
+  // -           Check Invoice Number                -
+  // -------------------------------------------------
+  const handleInvoiceBlur = async () => {
+    if (!invoiceNumber.trim() || !accessToken) return;
+
+    setIsChecking(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/invoices/check-invoice/?invoice_number=${encodeURIComponent(
+          invoiceNumber
+        )}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Server error while checking invoice");
+      }
+
+      const data = await response.json();
+      if (data.exists) {
+        setInvoiceExists(true);
+        toast.warning("Invoice number already exists!");
+      }else {
+        setInvoiceExists(false);
+      }
+    } catch (err) {
+      toast.error("Failed to check invoice number");
+      console.error(err);
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  // ------------------------------------------------
+  //           Handle live amount formatting        -
+  // ------------------------------------------------
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Allow only digits and up to one decimal point, 2 decimals max
+    const regex = /^(\d+(\.\d{0,2})?)?$/;
+
+    if (regex.test(value)) {
+      setAmount(value); // keep typed string as-is
+      setRawAmount(parseFloat(value) || 0);
+    }
+  };
+
+  const handleAmountFocus = () => {
+
+    // Strip formatting back to plain number
+    if (rawAmount) {
+      setAmount(rawAmount.toString());
+    }
+  };
+// On blur, format as PHP currency
+  const handleAmountBlur = () => {
+
+    if (!rawAmount) {
+      setAmount("");
+      return;
+    }
+
+    setAmount(
+        rawAmount.toLocaleString("en-PH", {
+          style: "currency",
+          currency: "PHP",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+    );
+
+  };
+
+
+  // --------------------------------------------------------
+  // Render
+  // --------------------------------------------------------
   return (
-    <>
+    <div>
       <form className={styles.invoiceForm} onSubmit={handleSubmit} noValidate>
         <div className={styles.formGroup}>
-          <label>Date</label>
-          <input 
+          <label>Invoice Date</label>
+          <input
             id="invoiceDate"
             type="datetime-local"
             value={invoiceDate}
@@ -372,7 +400,28 @@ export default function SubmitInvoice({
           />
         </div>
 
-         <div className={styles.formGroup} style={{ position: "relative" }} >
+        <div className={styles.formGroup}>
+          <label>Supplier Name</label>
+          <input
+            type="text"
+            value={supplierName}
+            onChange={(e) => setSupplierName(e.target.value)}
+            placeholder="Enter or search supplier"
+            required
+          />
+          {suggestions.length > 0 && (
+            <ul //className={styles.suggestions}
+            >
+              {suggestions.map((name, i) => (
+                <li key={i} onClick={() => setSupplierName(name)}>
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className={styles.formGroup} style={{ position: "relative" }} >
           <label>Vessel Name</label>
           <input
             ref={vesselInputRef}
@@ -451,6 +500,7 @@ export default function SubmitInvoice({
             </div>
           )}
         </div>
+
         <div className={styles.formGroup}>
           <label>Invoice Number</label>
           <input 
@@ -463,6 +513,7 @@ export default function SubmitInvoice({
           />
           {isChecking && <small>Checking...</small>}
         </div>
+
         <div className={styles.formGroup}>
           <label>Amount</label>
           <input 
@@ -485,15 +536,15 @@ export default function SubmitInvoice({
           />
         </div>
         <div className={styles.formGroup}>
-          <label>Attachment</label>
-          <input 
-            ref={fileInputRef}
+          <label>Attachment (PDF/Image)</label>
+          <input
             type="file"
-            accept="application/pdf" 
-            onChange={handleFileChange}
+            accept="application/pdf,image/*"
+            onChange={(e) => setAttachment(e.target.files?.[0] || null)}
           />
         </div>
-        <button 
+
+         <button 
            type="submit" 
            className={styles.submitBtn}
            disabled={isSubmitting}
@@ -502,6 +553,6 @@ export default function SubmitInvoice({
         </button>
       </form>
       <ToastContainer position="top-right" autoClose={3000} />
-    </>
+    </div>
   );
 }

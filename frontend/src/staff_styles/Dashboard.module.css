@@ -1,0 +1,325 @@
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+  font-family: "Roboto", sans-serif;
+  background: #f8fafc;
+  width: 100%;
+  overflow-x: hidden; /* ✅ prevent horizontal scroll on mobile */
+}
+
+/* ────────────── SIDEBAR ────────────── */
+.sidebar {
+  width: 220px;
+  background: #1e293b;
+  color: #fff;
+  padding: 20px;
+  transition: transform 0.3s ease;
+  z-index: 20;
+  display: flex;              /* ✅ make sidebar flex */
+  flex-direction: column;     /* stack items vertically */
+  justify-content: space-between; /* ✅ push logout button to bottom */
+}
+
+.sidebarOpen {
+  transform: translateX(0);
+}
+
+.logo {
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.sidebar nav {
+  flex: 1; /* ✅ let nav take available space so logout stays at bottom */
+}
+
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar nav li {
+  margin: 15px 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.sidebar nav li:hover {
+  background: #334155;
+}
+
+.sidebar nav li.active {
+  background: #475569;
+  font-weight: bold;
+}
+
+.logoutBtn {
+  margin-top: 2rem;
+  background: #ef4444;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+}
+
+.logoutBtn:hover {
+  background: #dc2626;
+}
+
+/* ────────────── TOPBAR ────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f1f5f9;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.desktopTitle {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.menuBtn {
+  display: none;
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.supplier {
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+/* Small Logout Icon Button (Topbar) */
+.logoutIconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #ef4444;
+  margin-left: 15px;
+  display: none; /* ✅ hidden by default (desktop) */
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.logoutIconBtn:hover {
+  color: #dc2626;
+}
+
+/* ────────────── MAIN CONTENT ────────────── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.content {
+  padding: 20px;
+  width: 100%;
+  max-width: 100%; /* ✅ prevents overflow */
+  box-sizing: border-box;
+}
+
+.pageTitle {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  color: #1e293b;
+}
+
+/* ────────────── FORM STYLING ────────────── */
+.invoiceForm {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  max-width: 600px;
+  width: 100%;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.formGroup input,
+.formGroup textarea {
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.submitBtn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.submitBtn:hover {
+  background: #1d4ed8;
+}
+
+/* ────────────── TABLE (Submitted Invoices) ────────────── */
+.invoiceList {
+  overflow-x: auto; /* ✅ allows table scroll on small screens */
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 400px; /* ✅ table fits on small screens */
+}
+
+.table th,
+.table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap; /* ✅ keep data inline */
+}
+
+.table th {
+  background: #f1f5f9;
+  font-weight: 600;
+}
+
+.table tr:hover {
+  background: #f9fafb;
+}
+
+/* ────────────── OVERLAY ────────────── */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 15;
+}
+
+/* ────────────── RESPONSIVE ────────────── */
+@media (max-width: 768px) {
+  .desktopTitle {
+    display: none; /* hide desktop page title on mobile */
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .menuBtn {
+    display: block;
+  }
+
+  .invoiceForm,
+  .invoiceList {
+    width: 100%;
+    padding: 15px;
+  }
+
+  /* ✅ Supplier + Logout inline */
+  .topbarRight {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .supplier {
+    white-space: nowrap;
+  }
+
+  .logoutIconBtn {
+    display: flex; /* show logout only on mobile */
+  }
+
+  .logoutBtn {
+    display: none; /* hide sidebar logout on mobile */
+  }
+}
+
+/* ===== Elegant Table Styling ===== */
+.invoiceCard {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+.invoiceTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.invoiceTable th {
+  background: #f8f9fa;
+  color: #34495e;
+  text-align: left;
+  font-weight: 600;
+  padding: 12px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.invoiceTable td {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.invoiceTable tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.invoiceTable tr:hover {
+  background: #f1f8f6;
+}
+
+/* Status tags */
+.statusApproved {
+  color: #1abc9c;
+  font-weight: 600;
+}
+
+.statusPending {
+  color: #e67e22;
+  font-weight: 600;
+}
