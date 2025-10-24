@@ -10,9 +10,16 @@ interface Vessel {
   vessel_id: string;
   vessel_name: string;
 }
+interface Supplier {
+  supplier_id: string;
+  supplier_name: string;
+}
 
 export default function StaffSubmitInvoice({ accessToken }: Props) {
   const [supplierName, setSupplierName] = useState("");
+  const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
+  const [supplierSuggestions, setSupplierSuggestions] = useState<Supplier[]>([]);
+  const [supplierHighlightedIndex, setSupplierHighlightedIndex] = useState(-1);
   const [invoiceDate, setInvoiceDate] = useState<string>("");
   const [vesselName, setVesselName] = useState("");
   const [vesselSuggestions, setVesselSuggestions] = useState<Vessel[]>([]);
@@ -27,12 +34,18 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
   const [isChecking, setIsChecking] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  const supplierDebounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const suggestionBoxRef = useRef<HTMLDivElement | null>(null);
   const vesselInputRef = useRef<HTMLInputElement | null>(null);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const supplierInputRef = useRef<HTMLInputElement | null>(null);
+  const supplierSuggestionBoxRef = useRef<HTMLDivElement | null>(null);
+  const supplierSuggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // -------------------------------------------------------
   //             Fetch vessels as user types               -        
@@ -143,38 +156,73 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
     setInvoiceDate(formatted);
   }, []);
 
-  // --------------------------------------------------------
-  // Fetch supplier suggestions
-  // --------------------------------------------------------
-  useEffect(() => {
-    const fetchSuppliers = async () => {
-      if (supplierName.trim().length < 2) {
-        setSuggestions([]);
+  // --------------------------------------------------
+  //             Fetch supplier suggestions           -
+  // --------------------------------------------------
+  // ------------------------------
+  // Fetch suppliers
+  // ------------------------------
+  const handleSupplierInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSupplierName(value);
+
+    if (supplierDebounceTimeout.current)
+      clearTimeout(supplierDebounceTimeout.current);
+
+    supplierDebounceTimeout.current = setTimeout(async () => {
+      if (value.length < 1 || !accessToken) {
+        setSupplierSuggestions([]);
         return;
       }
 
       try {
         const res = await fetch(
-          `http://localhost:8000/api/suppliers/?search=${supplierName}`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
+          `http://localhost:8000/api/suppliers/?search=${encodeURIComponent(
+            value
+          )}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
         );
-
-        if (res.ok) {
-          const data = await res.json();
-          setSuggestions(data.map((s: any) => s.supplier_name));
-        } else {
-          setSuggestions([]);
-        }
+        if (!res.ok) throw new Error("Failed to fetch suppliers");
+        const data = await res.json();
+        setSupplierSuggestions(data);
       } catch (err) {
-        console.error("Failed to fetch suppliers:", err);
+        console.error("Error fetching suppliers:", err);
+      }
+    }, 300);
+  };
+
+  const handleSupplierSelect = (name: string, id: string) => {
+    setSupplierName(name);
+    setSelectedSupplierId(id);
+    setSupplierSuggestions([]);
+  };
+
+  // ------------------------------
+  // Close suggestions on outside click
+  // ------------------------------
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        suggestionBoxRef.current &&
+        !suggestionBoxRef.current.contains(e.target as Node) &&
+        vesselInputRef.current &&
+        !vesselInputRef.current.contains(e.target as Node)
+      ) {
+        setVesselSuggestions([]);
+      }
+
+      if (
+        supplierSuggestionBoxRef.current &&
+        !supplierSuggestionBoxRef.current.contains(e.target as Node) &&
+        supplierInputRef.current &&
+        !supplierInputRef.current.contains(e.target as Node)
+      ) {
+        setSupplierSuggestions([]);
       }
     };
-
-    const timeout = setTimeout(fetchSuppliers, 300);
-    return () => clearTimeout(timeout);
-  }, [supplierName, accessToken]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // ---------------------------
   // - Validation using toast  -
@@ -228,7 +276,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
 
     try {
       const formData = new FormData();
-      // formData.append("supplier_id", supplierId ?? "");
+      formData.append("supplier_id", supplierId);
       formData.append("submitted_date", invoiceDate);
       formData.append("vessel", selectedVesselId);
       formData.append("invoice_number", invoiceNumber);
