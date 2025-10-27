@@ -17,7 +17,6 @@ from .models import (
 from .serializers import ( 
     InvoiceUploadSerializer,
     InvoiceListSerializer,
-    SupplierSerializer, 
 )
 from .authentication import JWTAuthentication,UserJWTAuthentication 
 
@@ -105,7 +104,7 @@ class InvoiceUploadView(APIView):
 # Check Invoice Existence
 # ---------------------------
 class CheckInvoiceView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [UserJWTAuthentication]
 
     def get(self, request):
         invoice_number = request.query_params.get("invoice_number")
@@ -133,7 +132,7 @@ class CheckInvoiceView(APIView):
 # Vessel List Endpoint
 # ---------------------------
 class VesselListView(APIView):
-    authentication_classes = [JWTAuthentication]  
+    authentication_classes = [UserJWTAuthentication]  
 
     def get(self, request):
         search = request.query_params.get("search", "").strip()

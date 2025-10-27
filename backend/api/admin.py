@@ -14,7 +14,7 @@ class InvoiceInline(admin.TabularInline):
 
 @admin.register(Supplier)
 class SupplierAdmin(admin.ModelAdmin):
-    list_display = ("supplier_name", "invoice_count", "date_created")
+    list_display = ("supplier_name", "supplier_id","invoice_count", "date_created")
     search_fields = ("supplier_name",)
     inlines = [InvoiceInline]
 

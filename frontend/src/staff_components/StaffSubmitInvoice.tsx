@@ -16,10 +16,12 @@ interface Supplier {
 }
 
 export default function StaffSubmitInvoice({ accessToken }: Props) {
+
   const [supplierName, setSupplierName] = useState("");
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
   const [supplierSuggestions, setSupplierSuggestions] = useState<Supplier[]>([]);
   const [supplierHighlightedIndex, setSupplierHighlightedIndex] = useState(-1);
+
   const [invoiceDate, setInvoiceDate] = useState<string>("");
   const [vesselName, setVesselName] = useState("");
   const [vesselSuggestions, setVesselSuggestions] = useState<Vessel[]>([]);
@@ -32,7 +34,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  // const [suggestions, setSuggestions] = useState<string[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const supplierDebounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -45,7 +47,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const supplierInputRef = useRef<HTMLInputElement | null>(null);
   const supplierSuggestionBoxRef = useRef<HTMLDivElement | null>(null);
-  const supplierSuggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+
 
   // -------------------------------------------------------
   //             Fetch vessels as user types               -        
@@ -159,9 +161,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
   // --------------------------------------------------
   //             Fetch supplier suggestions           -
   // --------------------------------------------------
-  // ------------------------------
-  // Fetch suppliers
-  // ------------------------------
+
   const handleSupplierInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSupplierName(value);
@@ -177,7 +177,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
 
       try {
         const res = await fetch(
-          `http://localhost:8000/api/suppliers/?search=${encodeURIComponent(
+          `http://localhost:8000/supplier/?search=${encodeURIComponent(
             value
           )}`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -276,13 +276,18 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
 
     try {
       const formData = new FormData();
-      formData.append("supplier_id", supplierId);
       formData.append("submitted_date", invoiceDate);
+      formData.append("supplier_id", selectedSupplierId);
       formData.append("vessel", selectedVesselId);
       formData.append("invoice_number", invoiceNumber);
       formData.append("description", description);
       formData.append("amount_due", rawAmount.toString());
       if (attachment) formData.append("pdf_file", attachment);
+
+      console.log("Submitting FormData:");
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
 
       const response = await fetch("http://localhost:8000/invoices/upload/", {
         method: "POST",
@@ -314,6 +319,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
 
       setInvoiceDate(`${year}-${month}-${day}T${hours}:${minutes}`);
       setInvoiceNumber("");
+      setSupplierName("");
       setVesselName("");
       setDescription("");
       setAmount("");
@@ -448,24 +454,80 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
           />
         </div>
 
-        <div className={styles.formGroup}>
+        <div className={styles.formGroup} style={{ position: "relative" }} >
           <label>Supplier Name</label>
           <input
+            ref={supplierInputRef}
             type="text"
-            value={supplierName}
-            onChange={(e) => setSupplierName(e.target.value)}
             placeholder="Enter or search supplier"
+            value={supplierName}
+            onChange={handleSupplierInput}
+            onKeyDown={(e) => {
+                if (supplierSuggestions.length === 0) return;
+
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setSupplierHighlightedIndex((prev) =>
+                    prev < supplierSuggestions.length - 1 ? prev + 1 : 0
+                  );
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setSupplierHighlightedIndex((prev) =>
+                    prev > 0 ? prev - 1 : supplierSuggestions.length - 1
+                  );
+                } else if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (supplierHighlightedIndex >= 0) {
+                    const selected = supplierSuggestions[supplierHighlightedIndex];
+                    handleSupplierSelect(selected.supplier_name,selected.supplier_id);
+                    setSupplierHighlightedIndex(-1);
+                  }
+                } else if (e.key === "Escape") {
+                  setSupplierHighlightedIndex(-1);
+                  setSupplierSuggestions([]);
+                }
+              }}
             required
           />
-          {suggestions.length > 0 && (
-            <ul //className={styles.suggestions}
+          {supplierSuggestions.length > 0 && (
+            <div
+              ref={supplierSuggestionBoxRef}
+              style={{
+                position: "absolute",
+                top: `${(supplierInputRef.current?.offsetHeight || 0) + 22}px`,
+                left: 0,
+                background: "white",
+                border: "1px solid #ccc",
+                borderRadius: "6px",
+                zIndex: 10,
+                maxHeight: "150px",
+                overflowY: "auto",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                width: supplierInputRef.current?.offsetWidth || "100%",
+              }}
             >
-              {suggestions.map((name, i) => (
-                <li key={i} onClick={() => setSupplierName(name)}>
-                  {name}
-                </li>
+              {supplierSuggestions.map((s, index) => (
+               <div
+                  key={s.supplier_id}
+                  onClick={() => handleSupplierSelect(s.supplier_name, s.supplier_id)}
+                  style={{
+                    padding: "8px 10px",
+                    cursor: "pointer",
+                    backgroundColor:
+                      index === supplierHighlightedIndex ? "#e8f0fe" : "white", 
+                  }}
+                  onMouseDown={(e) => e.preventDefault()} // prevent input blur
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLDivElement).style.backgroundColor = "#f0f0f0";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLDivElement).style.backgroundColor = "white";
+                  }}
+                >
+                  {s.supplier_name}
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
 
@@ -506,7 +568,6 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
           {vesselSuggestions.length > 0 && (
             <div
               ref={suggestionBoxRef}
-              // className={styles.suggestionBox}
               style={{
                 position: "absolute",
                 top: `${(vesselInputRef.current?.offsetHeight || 0) + 22}px`,
