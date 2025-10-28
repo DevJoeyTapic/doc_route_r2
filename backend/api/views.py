@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import (
     Pin, 
@@ -258,4 +258,34 @@ class UserLoginView(APIView):
             },
             "access_token": token
         }, status=status.HTTP_200_OK)
+    
+# ------------------------------------
+# -      User submitted invoice      -
+# ------------------------------------
+
+class StaffInvoiceUploadView(APIView):
+    authentication_classes = [UserJWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        supplier_id = request.data.get("supplier")
+        vessel_id = request.data.get("vessel")
+
+        # Validate supplier
+        try:
+            supplier = Supplier.objects.get(supplier_id=supplier_id)
+        except Supplier.DoesNotExist:
+            return Response({"detail": "No such supplier"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate vessel
+        try:
+            vessel = Vessel.objects.get(vessel_id=vessel_id)
+        except Vessel.DoesNotExist:
+            return Response({"detail": "No such vessel"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = InvoiceUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(supplier=supplier, vessel=vessel)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
     

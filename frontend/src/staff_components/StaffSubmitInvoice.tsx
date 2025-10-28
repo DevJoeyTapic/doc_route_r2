@@ -277,7 +277,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
     try {
       const formData = new FormData();
       formData.append("submitted_date", invoiceDate);
-      formData.append("supplier_id", selectedSupplierId);
+      formData.append("supplier", selectedSupplierId);
       formData.append("vessel", selectedVesselId);
       formData.append("invoice_number", invoiceNumber);
       formData.append("description", description);
@@ -289,7 +289,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
         console.log(`${key}:`, value);
       }
 
-      const response = await fetch("http://localhost:8000/invoices/upload/", {
+      const response = await fetch("http://localhost:8000/user/invoices/upload/", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
