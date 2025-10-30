@@ -21,10 +21,13 @@ export default function SubmittedInvoices({ accessToken }: SubmittedInvoicesProp
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ✅ Base URL from environment
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     if (!accessToken) return;
 
-    fetch("http://localhost:8000/invoices/", {
+    fetch(`${API_BASE_URL}/invoices/`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

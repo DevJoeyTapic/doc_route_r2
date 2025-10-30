@@ -1,11 +1,6 @@
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-import axios from "axios";
-
-const API = axios.create({
-  baseURL: "http://localhost:8000/api", // Django backend
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-export default API;
+export async function fetchData() {
+  const res = await fetch(`${API_BASE_URL}/api/data/`);
+  return res.json();
+}

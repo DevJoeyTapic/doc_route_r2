@@ -15,6 +15,9 @@ function PinPage() {
   const pinRefs = useRef<(HTMLInputElement | null)[]>([]);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
+  // ✅ Base URL from environment
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   // Handle input change
   const handleChange = (value: string, index: number) => {
     if (/^\d?$/.test(value)) {
@@ -54,7 +57,7 @@ function PinPage() {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8000/verify-pin/", {
+      const response = await axios.post(`${API_BASE_URL}/verify-pin/`, {
           pin_code: enteredPin,
       });
       // console.log("✅ API Response:", response.data); // show full JSON in console
@@ -141,7 +144,7 @@ function PinPage() {
       >
         {loading ? (
           <div className={styles.btnContent}>
-              <div className={styles.spi}>
+              <div >
               Verifying... 
               </div>
           </div>

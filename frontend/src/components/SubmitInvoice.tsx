@@ -39,6 +39,9 @@ export default function SubmitInvoice({
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ✅ Base URL from environment
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   // --------------------------------------------------------
   //           Fetch vessels as user types                  -
   // --------------------------------------------------------
@@ -59,7 +62,7 @@ export default function SubmitInvoice({
 
       try {
         const response = await fetch(
-          `http://localhost:8000/vessels/?search=${encodeURIComponent(value)}`,
+          `${API_BASE_URL}/vessels/?search=${encodeURIComponent(value)}`,
           {
             headers: { Authorization: `Bearer ${accessToken}` },
           }
@@ -202,7 +205,7 @@ export default function SubmitInvoice({
     setIsChecking(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/invoices/check-invoice/?invoice_number=${encodeURIComponent(
+        `${API_BASE_URL}/invoices/check-invoice/?invoice_number=${encodeURIComponent(
           invoiceNumber
         )}`,
         {
@@ -291,7 +294,7 @@ export default function SubmitInvoice({
       formData.append("amount_due", rawAmount.toString());
       if (attachment) formData.append("pdf_file", attachment);
 
-      const response = await fetch("http://localhost:8000/invoices/upload/", {
+      const response = await fetch(`${API_BASE_URL}/invoices/upload/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -409,7 +412,6 @@ export default function SubmitInvoice({
           {vesselSuggestions.length > 0 && (
             <div
               ref={suggestionBoxRef}
-              // className={styles.suggestionBox}
               style={{
                 position: "absolute",
                 top: `${(vesselInputRef.current?.offsetHeight || 0) + 22}px`,

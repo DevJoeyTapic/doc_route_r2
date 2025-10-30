@@ -21,7 +21,6 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
   const [supplierSuggestions, setSupplierSuggestions] = useState<Supplier[]>([]);
   const [supplierHighlightedIndex, setSupplierHighlightedIndex] = useState(-1);
-
   const [invoiceDate, setInvoiceDate] = useState<string>("");
   const [vesselName, setVesselName] = useState("");
   const [vesselSuggestions, setVesselSuggestions] = useState<Vessel[]>([]);
@@ -34,11 +33,13 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  // const [suggestions, setSuggestions] = useState<string[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const supplierDebounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
+
+  // ✅ Base URL from environment
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const suggestionBoxRef = useRef<HTMLDivElement | null>(null);
   const vesselInputRef = useRef<HTMLInputElement | null>(null);
@@ -66,7 +67,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
 
       try {
         const response = await fetch(
-          `http://localhost:8000/vessels/?search=${encodeURIComponent(value)}`,
+          `${API_BASE_URL}/vessels/?search=${encodeURIComponent(value)}`,
           {
             headers: { Authorization: `Bearer ${accessToken}` },
           }
@@ -177,7 +178,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
 
       try {
         const res = await fetch(
-          `http://localhost:8000/supplier/?search=${encodeURIComponent(
+          `${API_BASE_URL}/supplier/?search=${encodeURIComponent(
             value
           )}`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -289,7 +290,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
         console.log(`${key}:`, value);
       }
 
-      const response = await fetch("http://localhost:8000/user/invoices/upload/", {
+      const response = await fetch(`${API_BASE_URL}/user/invoices/upload/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -367,7 +368,7 @@ export default function StaffSubmitInvoice({ accessToken }: Props) {
     setIsChecking(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/invoices/check-invoice/?invoice_number=${encodeURIComponent(
+        `${API_BASE_URL}/invoices/check-invoice/?invoice_number=${encodeURIComponent(
           invoiceNumber
         )}`,
         {

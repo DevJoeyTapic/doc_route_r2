@@ -1,10 +1,15 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react-swc';
 
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port:3000
-  }
+export default defineConfig(({ mode }) => {
+  // Load environment variables based on the mode
+  const env = loadEnv(mode, process.cwd());
+
+  return {
+    plugins: [react()],
+    server: {
+      port: Number(env.VITE_DEV_PORT) || 3000,
+    },
+  };
 });
+
