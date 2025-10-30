@@ -14,13 +14,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // ✅ Get API base URL from .env
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/user/login/", {
+      const response = await fetch(`${API_BASE_URL}/user/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
